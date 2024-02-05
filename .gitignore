@@ -4,6 +4,9 @@ venv_fahmi/
 # password
 .streamlit/secrets.toml
 
+#ignore pj scripts
+.surveyscript/pjscripts.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

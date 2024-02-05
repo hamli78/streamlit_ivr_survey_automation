@@ -42,7 +42,7 @@ def custom_sort(col):
     if match:
         question_num = int(match.group(1))  # Question number
         flow_no = int(match.group(2)) if match.group(2) else 0  # Flow number, default to 0 if not present
-        return (question_num, flow_no)
+        return (question_num, flow_no) 
     else:
         # Return a tuple that sorts non-matching columns to the end
         return (float('inf'), 0)
@@ -163,10 +163,7 @@ if __name__ == "__main__":
     run()
 
 
-
-
-
-
+# ni yang later awal tak pakai dah pakai yg first sebb sama padan je no dia
 # page3.py
 # page3.py
 
@@ -291,6 +288,89 @@ if __name__ == "__main__":
 
 #     else:
 #         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+
+# if __name__ == "__main__":
+#     run()
+
+# import streamlit as st
+# import pandas as pd
+# import re
+# from datetime import datetime
+
+# # Function to parse questions and their corresponding answers from the text file
+# def parse_questions_and_answers(file_contents):
+#     """
+#     Parses the uploaded .txt file to extract questions and their corresponding answers.
+#     Expected file format:
+#         1. Question text
+#         - Answer 1
+#         - Answer 2
+#         ...
+#     Returns a dictionary where keys are 'Q1', 'Q2', ... and values are the question text and a list of answers.
+#     """
+#     qa_dict = {}
+#     current_question = None
+#     for line in file_contents.split('\n'):
+#         line = line.strip()
+#         if line.startswith('-'):  # This is an answer
+#             if current_question:
+#                 answer_text = line[1:].strip()
+#                 qa_dict[current_question]['answers'].append(answer_text)
+#         else:
+#             match = re.match(r"(\d+)\.\s*(.*)", line)
+#             if match:
+#                 question_number, question_text = match.groups()
+#                 current_question = f"Q{int(question_number)}"
+#                 qa_dict[current_question] = {'question': question_text.strip(), 'answers': []}
+#     return qa_dict
+
+# # Function to customize sorting of columns, focusing on FlowNo
+# def custom_sort(col):
+#     match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
+#     if match:
+#         question_num = int(match.group(1))
+#         flow_no = int(match.group(2)) if match.group(2) else 0
+#         return (question_num, flow_no)
+#     else:
+#         return (float('inf'), 0)
+
+# def run():
+#     st.title('Data Processing App')
+
+#     uploaded_file = st.file_uploader("Choose a text file", type='txt')
+#     if uploaded_file is not None:
+#         file_contents = uploaded_file.getvalue().decode("utf-8")
+#         qa_dict = parse_questions_and_answers(file_contents)
+#         if st.button("Preview Parsed Questions and Answers"):
+#             for q, info in qa_dict.items():
+#                 st.write(f"{q}: {info['question']}")
+#                 for ans in info['answers']:
+#                     st.write(f"- {ans}")
+
+#     # Placeholder for DataFrame loading and initial renaming logic
+#     # Assuming DataFrame is already loaded into 'cleaned_data' for simplicity
+    
+#         # Logic for initial column renaming based on parsed questions would go here
+#         # This part is skipped for brevity and assumed to be handled separately
+
+#         # The provided script for processing FlowNo values and further manipulations
+#         if 'renamed_data' in st.session_state:
+#             renamed_data = st.session_state['renamed_data']
+#             # Assuming 'renamed_data' is the DataFrame after initial column renaming
+
+#             # Sort columns based on custom criteria
+#             sorted_columns = sorted(renamed_data.columns, key=custom_sort)
+#             renamed_data = renamed_data[sorted_columns]
+
+#             st.write("Preview of Renamed Data:")
+#             st.dataframe(renamed_data.head())
+
+#             # Further processing of FlowNo and other operations as described
+#             # This includes the decoding keypresses logic and CSV download functionality
+#             # Place the rest of your provided script here
+
+#     else:
+#         st.error("No data found. Please upload and prepare your data first.")
 
 # if __name__ == "__main__":
 #     run()
