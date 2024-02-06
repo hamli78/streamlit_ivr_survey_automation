@@ -45,17 +45,16 @@ def parse_questions_and_answers(file_contents):
     qa_dict = {}  # Initialize an empty dictionary to store question-answer mappings
     question_number = 0  # Initialize question number tracking
 
-    lines = file_contents.split('\n')  # Split the file content by new lines
+    lines = file_contents.split('\n')
     for line in lines:
-        if line.startswith("1.") or line.startswith("2.") or line.startswith("3.") or line.startswith("4.") or line.startswith("5.") or line.startswith("6.") or line.startswith("7.") or line.startswith("8.") or line.startswith("9.") or line.startswith("10.") or line.startswith("11."):
-            # Extract question number and question text
-            question_number += 1  # Increment question number
-            qa_dict[f'FlowNo_{question_number}'] = []  # Prepare to store answers for this question
-        elif line.startswith("   - "):
-            # Extract answer text, removing leading dash and spaces
+        if re.match(r"^\d+\.", line):  # Matches lines that start with a number followed by a dot
+            question_number += 1
+            question_text = line.split('.', 1)[1].strip()  # Extract question text
+            qa_dict[f'FlowNo_{question_number}'] = {'question': question_text, 'answers': []}
+        elif line.startswith("   - "):  # Identifies answer options
             answer = line.strip("   - ")
-            if question_number > 0:  # Ensure we have started collecting answers for a question
-                qa_dict[f'FlowNo_{question_number}'].append(answer)
+            if question_number > 0:
+                qa_dict[f'FlowNo_{question_number}']['answers'].append(answer)
 
     return qa_dict
 
