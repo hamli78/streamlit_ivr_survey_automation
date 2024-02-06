@@ -44,7 +44,6 @@ def custom_sort(col):
         flow_no = int(match.group(2)) if match.group(2) else 0  # Flow number, default to 0 if not present
         return (question_num, flow_no) 
     else:
-        # Return a tuple that sorts non-matching columns to the end
         return (float('inf'), 0)
 
 
