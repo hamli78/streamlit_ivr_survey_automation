@@ -854,56 +854,56 @@ def run2():
             st.dataframe(renamed_data.head())
             st.session_state['decoded_data'] = renamed_data
            
-        #     st.subheader(f"Question: {col}")
-        #     unique_values = renamed_data[col].unique()
+            st.subheader(f"Question: {col}")
+            unique_values = renamed_data[col].unique()
 
-        #     # Sort the unique values in ascending order assuming they are integers
-        #     sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
-        #     container = st.container()
-        #     # Checkbox to exclude entire question
-        #     if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
-        #         drop_cols.append(col)
+            # Sort the unique values in ascending order assuming they are integers
+            sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
+            container = st.container()
+            # Checkbox to exclude entire question
+            if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
+                drop_cols.append(col)
                 
 
-        #     container = st.container()
-        #     all_mappings = {}
-        #     drop_vals = []  # To hold FlowNo values to drop
+            container = st.container()
+            all_mappings = {}
+            drop_vals = []  # To hold FlowNo values to drop
 
-        #     for val in sorted_unique_values:
-        #         if pd.notna(val):
-        #             # Checkbox to exclude specific FlowNo
-        #             if container.checkbox(f"Exclude FlowNo '{val}'", key=f"exclude_{col}_{val}"):
-        #                 drop_vals.append(val)
-        #                 continue
+            for val in sorted_unique_values:
+                if pd.notna(val):
+                    # Checkbox to exclude specific FlowNo
+                    if container.checkbox(f"Exclude FlowNo '{val}'", key=f"exclude_{col}_{val}"):
+                        drop_vals.append(val)
+                        continue
 
-        #             readable_val = container.text_input(f"Rename '{val}' to:", value="", key=f"{col}_{val}")
-        #             if readable_val:
-        #                 all_mappings[val] = readable_val
+                    readable_val = container.text_input(f"Rename '{val}' to:", value="", key=f"{col}_{val}")
+                    if readable_val:
+                        all_mappings[val] = readable_val
 
-        #     # Remove the excluded FlowNo values from mappings
-        #     for val in drop_vals:
-        #         if val in all_mappings:
-        #             del all_mappings[val]
+            # Remove the excluded FlowNo values from mappings
+            for val in drop_vals:
+                if val in all_mappings:
+                    del all_mappings[val]
 
-        #     if all_mappings:
-        #         keypress_mappings[col] = all_mappings
+            if all_mappings:
+                keypress_mappings[col] = all_mappings
 
-        # if st.button("Decode Keypresses"):
-        #     for col, col_mappings in keypress_mappings.items():
-        #         if col not in drop_cols:  # Only apply mappings if the column is not excluded
-        #             renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
+        if st.button("Decode Keypresses"):
+            for col, col_mappings in keypress_mappings.items():
+                if col not in drop_cols:  # Only apply mappings if the column is not excluded
+                    renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
 
-        #     # Drop excluded columns
-        #     renamed_data.drop(columns=drop_cols, inplace=True)
+            # Drop excluded columns
+            renamed_data.drop(columns=drop_cols, inplace=True)
 
-        #     drop_vals = {}
+            drop_vals = {}
 
-        #     # Now drop rows based on excluded FlowNo values
-        #     for col, vals_to_drop in drop_vals.items():
-        #         for val in vals_to_drop:
-        #             renamed_data = renamed_data[renamed_data[col] != val]
+            # Now drop rows based on excluded FlowNo values
+            for col, vals_to_drop in drop_vals.items():
+                for val in vals_to_drop:
+                    renamed_data = renamed_data[renamed_data[col] != val]
 
-        #     st.session_state['decoded_data'] = renamed_data
+            st.session_state['decoded_data'] = renamed_data
 
             # Display IVR length and shape
             st.write(f'IVR Length: {len(renamed_data)} rows')
