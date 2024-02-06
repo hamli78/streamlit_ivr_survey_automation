@@ -65,7 +65,8 @@ def custom_sort(col):
         question_num = int(match.group(1))
         flow_no = int(match.group(2)) if match.group(2) else 0
         return (question_num, flow_no)
-    return (float('inf'), 0)
+    else:
+        return (float('inf'), 0)
 
 def run():
     st.title('Keypresses Decoder')

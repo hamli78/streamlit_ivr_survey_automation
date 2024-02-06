@@ -41,7 +41,7 @@ def run():
 
 
 def process_file(uploaded_file):
-    df = pd.read_csv(uploaded_file, skiprows=1, names=range(24), engine='python')
+    df = pd.read_csv(uploaded_file, skiprows=1, names=range(100), engine='python')
     df.dropna(axis='columns', how='all', inplace=True)
     df.columns = df.iloc[0]
     df_phonenum = df[['PhoneNo']]
