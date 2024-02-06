@@ -35,129 +35,166 @@ def set_dark_mode_css():
 
 # Call the function to apply the dark mode CSS
 set_dark_mode_css()
+    
+def parse_questions_and_answers(file_contents):
+    """
+    Parses the script from the uploaded .txt file to map questions to their answers.
+    The script is expected to be structured with each question followed by its answers,
+    where each answer is prefixed with a dash.
+    """
+    qa_dict = {}  # Initialize an empty dictionary to store question-answer mappings
+    question_number = 0  # Initialize question number tracking
+
+    lines = file_contents.split('\n')  # Split the file content by new lines
+    for line in lines:
+        if line.startswith("1.") or line.startswith("2.") or line.startswith("3.") or line.startswith("4.") or line.startswith("5.") or line.startswith("6.") or line.startswith("7.") or line.startswith("8.") or line.startswith("9.") or line.startswith("10.") or line.startswith("11."):
+            # Extract question number and question text
+            question_number += 1  # Increment question number
+            qa_dict[f'FlowNo_{question_number}'] = []  # Prepare to store answers for this question
+        elif line.startswith("   - "):
+            # Extract answer text, removing leading dash and spaces
+            answer = line.strip("   - ")
+            if question_number > 0:  # Ensure we have started collecting answers for a question
+                qa_dict[f'FlowNo_{question_number}'].append(answer)
+
+    return qa_dict
 
 def custom_sort(col):
-    # Improved regex to capture question and flow numbers accurately
     match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
     if match:
-        question_num = int(match.group(1))  # Question number
-        flow_no = int(match.group(2)) if match.group(2) else 0  # Flow number, default to 0 if not present
-        return (question_num, flow_no) 
-    else:
-        # Return a tuple that sorts non-matching columns to the end
-        return (float('inf'), 0)
-
+        question_num = int(match.group(1))
+        flow_no = int(match.group(2)) if match.group(2) else 0
+        return (question_num, flow_no)
+    return (float('inf'), 0)
 
 def run():
     st.title('Keypresses Decoder')
-
+    
+    # Initialize qa_dict in session_state if not present
+    if 'qa_dict' not in st.session_state:
+        st.session_state['qa_dict'] = {}
+        
     if 'renamed_data' in st.session_state:
         renamed_data = st.session_state['renamed_data']
         
-        # Sort columns based on custom criteria
-        sorted_columns = sorted(renamed_data.columns, key=custom_sort)
-        renamed_data = renamed_data[sorted_columns]
+        # File uploader to allow users to upload a .txt file with scripts
+        uploaded_file = st.file_uploader("Choose a file", type='txt')
+        if uploaded_file is not None:
+            # Reading the uploaded file and storing its contents
+            file_contents = uploaded_file.getvalue().decode("utf-8")
+            st.session_state['qa_dict'] = parse_questions_and_answers(file_contents)
+            st.success("Questions and answers parsed successfully.")
+        else:
+            # Optional: Inform the user to upload a file
+            st.info("Please upload a file to parse questions and their answers.")
         
-        st.write("Preview of Renamed Data:")
-        st.dataframe(renamed_data.head())
+        st.markdown("## Preview of questions and their answers.")
+        if 'qa_dict' in st.session_state:
+            qa_dict = st.session_state['qa_dict']
+            sorted_columns = sorted(renamed_data.columns, key=custom_sort)
+            renamed_data = renamed_data[sorted_columns]
 
-        keypress_mappings = {}
-        drop_cols = []
+            st.write("Preview of Renamed Data:")
+            st.dataframe(renamed_data.head())
 
-        for col in renamed_data.columns[1:-1]:
-            st.subheader(f"Question: {col}")
-            unique_values = renamed_data[col].unique()
-             
-            # Sort the unique values in ascending order assuming they are integers
-            sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
-            container = st.container()
-            # Checkbox to exclude entire question
-            if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
-                drop_cols.append(col)
-                continue
+            keypress_mappings = {}
+            drop_cols = []
             
-            container = st.container()
-            all_mappings = {}
-            drop_vals = []  # To hold flowno values to drop
-            
-            for val in sorted_unique_values:
-                if pd.notna(val):
-                    # Checkbox to exclude specific flowno
-                    if container.checkbox(f"Exclude flowno '{val}'", key=f"exclude_{col}_{val}"):
-                        drop_vals.append(val)
+            for col in renamed_data.columns[1:-1]:  # Iterate through DataFrame columns
+                st.subheader(f"Question: {col}")
+                if col in qa_dict.keys():
+                    # This block is adjusted to use qa_dict for automated mapping
+                    unique_values = qa_dict[col]  # Get unique answers from qa_dict
+                    sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
+                    container = st.container()
+                    if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
+                        drop_cols.append(col)
                         continue
+            
+                    container = st.container()
+                    all_mappings = {}
+                    drop_vals = []  # To hold flowno values to drop
                     
-                    readable_val = container.text_input(f"Rename '{val}' to:", value="", key=f"{col}_{val}")
-                    if readable_val:
-                        all_mappings[val] = readable_val
-                        
-            # Remove the excluded flowno values from mappings
-            for val in drop_vals:
-                if val in all_mappings:
-                    del all_mappings[val]
+                    # Use parsed answers for initial mapping, allowing manual adjustments
+                    if col in qa_dict:
+                        for idx, val in enumerate(qa_dict[col]):
+                            flow_no = f"{col}={idx+1}"
+                            # Option to exclude specific flow no.
+                            if container.checkbox(f"Exclude flowno '{flow_no}'", key=f"exclude_{flow_no}"):
+                                drop_vals.append(flow_no)
+                                continue
+                            # Pre-fill with parsed answer, allowing manual edit
+                            readable_val = container.text_input(f"Rename '{flow_no}' to:", value=val, key=f"rename_{flow_no}")
+                            if readable_val:
+                                all_mappings[flow_no] = readable_val
+                    
+                    # Apply mappings only if they are not flagged to be dropped
+                    for val in drop_vals:
+                        if val in all_mappings:
+                            del all_mappings[val]
 
-            if all_mappings:
-                keypress_mappings[col] = all_mappings
+                    if all_mappings:
+                        keypress_mappings[col] = all_mappings
             
-        if st.button("Decode Keypresses"):
-            for col, col_mappings in keypress_mappings.items():
-                if col not in drop_cols:  # Only apply mappings if the column is not excluded
-                    renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
+            if st.button("Decode Keypresses"):
+                for col, col_mappings in keypress_mappings.items():
+                    if col not in drop_cols:  # Only apply mappings if the column is not excluded
+                        renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
 
-            # Drop excluded columns
-            renamed_data.drop(columns=drop_cols, inplace=True)
-            
-            drop_vals = {}
-            
-            # Now drop rows based on excluded FlowNo values
-            for col, vals_to_drop in drop_vals.items():
-                for val in vals_to_drop:
-                    renamed_data = renamed_data[renamed_data[col] != val]
-
-            st.session_state['decoded_data'] = renamed_data
-            
-            # Display IVR length and shape
-            st.write(f'IVR Length: {len(renamed_data)} rows')
-            st.write(renamed_data.shape)
-
-            # Current date for reporting
-            today = datetime.now()
-            st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
-            st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
-
-            # Check for null values before dropping
-            st.write(f'Before dropping: {len(renamed_data)} rows')
-            renamed_data.dropna(inplace=True)
-            st.write(f'After dropping: {len(renamed_data)} rows')
-            st.write(f'Preview of Total of Null Values per Column:')
-            st.write(renamed_data.isnull().sum())
-
-            # Sanity check
-            for col in renamed_data.columns:
-                st.write(f"Sanity check for {col}:")
-                st.write(renamed_data[col].value_counts(normalize=True))
-                st.write("\n")
+                # Drop excluded columns
+                renamed_data.drop(columns=drop_cols, inplace=True)
                 
-            st.write("Preview of Decoded Data:")
-            st.dataframe(renamed_data)
+                drop_vals = {}
+                
+                # Now drop rows based on excluded FlowNo values
+                for col, vals_to_drop in drop_vals.items():
+                    for val in vals_to_drop:
+                        renamed_data = renamed_data[renamed_data[col] != val]
 
-            # CSV Download
-            formatted_date = datetime.now().strftime("%Y%m%d")
-            default_filename = f'IVR_Petaling_Jaya_Survey2023_Decoded_Data_v{formatted_date}.csv'
-            output_filename = st.text_input("Edit the filename for download", value=default_filename)
-            if not output_filename.lower().endswith('.csv'):
-                output_filename += '.csv'
+                st.session_state['decoded_data'] = renamed_data
+                
+                # Display IVR length and shape
+                st.write(f'IVR Length: {len(renamed_data)} rows')
+                st.write(renamed_data.shape)
 
-            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download Decoded Data as CSV",
-                data=data_as_csv,
-                file_name=output_filename,
-                mime='text/csv'
-            )
+                # Current date for reporting
+                today = datetime.now()
+                st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
+                st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
 
-    else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+                # Check for null values before dropping
+                st.write(f'Before dropping: {len(renamed_data)} rows')
+                renamed_data.dropna(inplace=True)
+                st.write(f'After dropping: {len(renamed_data)} rows')
+                st.write(f'Preview of Total of Null Values per Column:')
+                st.write(renamed_data.isnull().sum())
+
+                # Sanity check
+                for col in renamed_data.columns:
+                    st.write(f"Sanity check for {col}:")
+                    st.write(renamed_data[col].value_counts(normalize=True))
+                    st.write("\n")
+                    
+                st.write("Preview of Decoded Data:")
+                st.dataframe(renamed_data)
+
+                # CSV Download
+                formatted_date = datetime.now().strftime("%Y%m%d")
+                default_filename = f'IVR_Petaling_Jaya_Survey2023_Decoded_Data_v{formatted_date}.csv'
+                output_filename = st.text_input("Edit the filename for download", value=default_filename)
+                if not output_filename.lower().endswith('.csv'):
+                    output_filename += '.csv'
+
+                data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Download Decoded Data as CSV",
+                    data=data_as_csv,
+                    file_name=output_filename,
+                    mime='text/csv'
+                )
+
+        else:
+            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
 if __name__ == "__main__":
     run()

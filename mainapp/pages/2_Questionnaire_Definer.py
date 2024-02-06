@@ -825,168 +825,169 @@ def run1():
 if __name__ == "__main__":
     run1()
 
-def run2():
-    st.title('Keypresses Decoder')
+#ni yang run2 last resort
+# def run2():
+#     st.title('Keypresses Decoder')
 
-    if 'renamed_data' in st.session_state:
-        renamed_data = st.session_state['renamed_data']  # Use the renamed_data from the previous step
+#     if 'renamed_data' in st.session_state:
+#         renamed_data = st.session_state['renamed_data']  # Use the renamed_data from the previous step
         
-        if 'qa_dict' not in st.session_state:
-            st.error("Question and Answer data not loaded. Please go back and upload the text file.")
-            return
+#         if 'qa_dict' not in st.session_state:
+#             st.error("Question and Answer data not loaded. Please go back and upload the text file.")
+#             return
 
-        qa_dict = st.session_state['qa_dict']
+#         qa_dict = st.session_state['qa_dict']
         
-        # Sort columns based on custom criteria
-        sorted_columns = sorted(renamed_data.columns, key=custom_sort)
-        renamed_data = renamed_data[sorted_columns]
+#         # Sort columns based on custom criteria
+#         sorted_columns = sorted(renamed_data.columns, key=custom_sort)
+#         renamed_data = renamed_data[sorted_columns]
 
-        st.write("Preview of Renamed Data:")
-        st.dataframe(renamed_data.head())
+#         st.write("Preview of Renamed Data:")
+#         st.dataframe(renamed_data.head())
 
-        keypress_mappings = {}
-        drop_cols = []
-        drop_vals = {}
+#         keypress_mappings = {}
+#         drop_cols = []
+#         drop_vals = {}
         
-        for col in renamed_data.columns[1:-1]:
-            # Extract question number from the column name
-            match = re.match(r"FlowNo_(\d+)", col)
-            if match:
-                question_number = int(match.group(1))
-                q_key = f"Q{question_number}"
+#         for col in renamed_data.columns[1:-1]:
+#             # Extract question number from the column name
+#             match = re.match(r"FlowNo_(\d+)", col)
+#             if match:
+#                 question_number = int(match.group(1))
+#                 q_key = f"Q{question_number}"
                 
-                if q_key in qa_dict:
-                    question_info = qa_dict[q_key]
-                    st.subheader(f"{q_key}: {question_info['question']}")
+#                 if q_key in qa_dict:
+#                     question_info = qa_dict[q_key]
+#                     st.subheader(f"{q_key}: {question_info['question']}")
                     
-                    container = st.container()
-                    all_mappings = {}
+#                     container = st.container()
+#                     all_mappings = {}
                     
-                    for i, answer in enumerate(question_info['answers'], start=1):
-                        val = f"FlowNo_{question_number}={i}"
-                        readable_val = container.text_input(f"Rename '{val}' to:", value=answer, key=f"{col}_{i}")
-                        all_mappings[val.split('=')[0]] = readable_val
+#                     for i, answer in enumerate(question_info['answers'], start=1):
+#                         val = f"FlowNo_{question_number}={i}"
+#                         readable_val = container.text_input(f"Rename '{val}' to:", value=answer, key=f"{col}_{i}")
+#                         all_mappings[val.split('=')[0]] = readable_val
                     
-                    # sorted_unique_values = [f"FlowNo_{question_number}={i+1}" for i in range(len(question_info['answers']))]
-                    # container = st.container()
+#                     # sorted_unique_values = [f"FlowNo_{question_number}={i+1}" for i in range(len(question_info['answers']))]
+#                     # container = st.container()
 
-                    # all_mappings = {}
-                    # for i, val in enumerate(sorted_unique_values):
-                    #     readable_val = container.text_input(f"Rename '{val}' to:", value=question_info['answers'][i], key=f"{col}_{i+1}")
-                    #     all_mappings[val] = readable_val
+#                     # all_mappings = {}
+#                     # for i, val in enumerate(sorted_unique_values):
+#                     #     readable_val = container.text_input(f"Rename '{val}' to:", value=question_info['answers'][i], key=f"{col}_{i+1}")
+#                     #     all_mappings[val] = readable_val
 
-                    keypress_mappings[col] = all_mappings
+#                     keypress_mappings[col] = all_mappings
                     
-                if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
-                    drop_cols.append(col)
+#                 if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
+#                     drop_cols.append(col)
                         
-        if st.button("Decode Keypresses"):
-            # Apply the mappings
-            for col, mappings in keypress_mappings.items():
-                for flow_val, new_name in mappings.items():
-                    # Note: You may need to adjust the logic to apply the mapping directly to DataFrame values
-                    renamed_data[col] = renamed_data[col].replace(to_replace=flow_val, value=new_name, regex=True)
-                    # renamed_data[col] = renamed_data[col].replace(flow_val.split('=')[0], new_name)
+#         if st.button("Decode Keypresses"):
+#             # Apply the mappings
+#             for col, mappings in keypress_mappings.items():
+#                 for flow_val, new_name in mappings.items():
+#                     # Note: You may need to adjust the logic to apply the mapping directly to DataFrame values
+#                     renamed_data[col] = renamed_data[col].replace(to_replace=flow_val, value=new_name, regex=True)
+#                     # renamed_data[col] = renamed_data[col].replace(flow_val.split('=')[0], new_name)
             
-            # Drop excluded columns
-            renamed_data.drop(columns=drop_cols, inplace=True)
+#             # Drop excluded columns
+#             renamed_data.drop(columns=drop_cols, inplace=True)
 
-            st.session_state['decoded_data'] = renamed_data
-            st.write("Preview of Decoded Data:")
-            st.dataframe(renamed_data.head())
-            st.session_state['decoded_data'] = renamed_data
+#             st.session_state['decoded_data'] = renamed_data
+#             st.write("Preview of Decoded Data:")
+#             st.dataframe(renamed_data.head())
+#             st.session_state['decoded_data'] = renamed_data
            
-            st.subheader(f"Question: {col}")
-            unique_values = renamed_data[col].unique()
+#             st.subheader(f"Question: {col}")
+#             unique_values = renamed_data[col].unique()
 
-            # Sort the unique values in ascending order assuming they are integers
-            sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
-            container = st.container()
-            # Checkbox to exclude entire question
-            if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
-                drop_cols.append(col)
+#             # Sort the unique values in ascending order assuming they are integers
+#             sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
+#             container = st.container()
+#             # Checkbox to exclude entire question
+#             if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
+#                 drop_cols.append(col)
                 
 
-            container = st.container()
-            all_mappings = {}
-            drop_vals = []  # To hold FlowNo values to drop
+#             container = st.container()
+#             all_mappings = {}
+#             drop_vals = []  # To hold FlowNo values to drop
 
-            for val in sorted_unique_values:
-                if pd.notna(val):
-                    # Checkbox to exclude specific FlowNo
-                    if container.checkbox(f"Exclude FlowNo '{val}'", key=f"exclude_{col}_{val}"):
-                        drop_vals.append(val)
-                        continue
+#             for val in sorted_unique_values:
+#                 if pd.notna(val):
+#                     # Checkbox to exclude specific FlowNo
+#                     if container.checkbox(f"Exclude FlowNo '{val}'", key=f"exclude_{col}_{val}"):
+#                         drop_vals.append(val)
+#                         continue
 
-                    readable_val = container.text_input(f"Rename '{val}' to:", value="", key=f"{col}_{val}")
-                    if readable_val:
-                        all_mappings[val] = readable_val
+#                     readable_val = container.text_input(f"Rename '{val}' to:", value="", key=f"{col}_{val}")
+#                     if readable_val:
+#                         all_mappings[val] = readable_val
 
-            # Remove the excluded FlowNo values from mappings
-            for val in drop_vals:
-                if val in all_mappings:
-                    del all_mappings[val]
+#             # Remove the excluded FlowNo values from mappings
+#             for val in drop_vals:
+#                 if val in all_mappings:
+#                     del all_mappings[val]
 
-            if all_mappings:
-                keypress_mappings[col] = all_mappings
+#             if all_mappings:
+#                 keypress_mappings[col] = all_mappings
 
-            # Drop excluded columns
-            renamed_data.drop(columns=drop_cols, inplace=True)
+#             # Drop excluded columns
+#             renamed_data.drop(columns=drop_cols, inplace=True)
 
-            drop_vals = {}
+#             drop_vals = {}
 
-            # Now drop rows based on excluded FlowNo values
-            for col, vals_to_drop in drop_vals.items():
-                for val in vals_to_drop:
-                    renamed_data = renamed_data[renamed_data[col] != val]
+#             # Now drop rows based on excluded FlowNo values
+#             for col, vals_to_drop in drop_vals.items():
+#                 for val in vals_to_drop:
+#                     renamed_data = renamed_data[renamed_data[col] != val]
 
-            st.session_state['decoded_data'] = renamed_data
+#             st.session_state['decoded_data'] = renamed_data
 
-            # Display IVR length and shape
-            st.write(f'IVR Length: {len(renamed_data)} rows')
-            st.write(renamed_data.shape)
+#             # Display IVR length and shape
+#             st.write(f'IVR Length: {len(renamed_data)} rows')
+#             st.write(renamed_data.shape)
 
-            # Current date for reporting
-            today = datetime.now()
-            st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
-            st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
+#             # Current date for reporting
+#             today = datetime.now()
+#             st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
+#             st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
 
-            # Check for null values before dropping
-            st.write(f'Before dropping: {len(renamed_data)} rows')
-            renamed_data.dropna(inplace=True)
-            st.write(f'After dropping: {len(renamed_data)} rows')
-            st.write(f'Preview of Total of Null Values per Column:')
-            st.write(renamed_data.isnull().sum())
+#             # Check for null values before dropping
+#             st.write(f'Before dropping: {len(renamed_data)} rows')
+#             renamed_data.dropna(inplace=True)
+#             st.write(f'After dropping: {len(renamed_data)} rows')
+#             st.write(f'Preview of Total of Null Values per Column:')
+#             st.write(renamed_data.isnull().sum())
 
-            # Sanity check
-            for col in renamed_data.columns:
-                st.write(f"Sanity check for {col}:")
-                st.write(renamed_data[col].value_counts(normalize=True))
-                st.write("\n")
+#             # Sanity check
+#             for col in renamed_data.columns:
+#                 st.write(f"Sanity check for {col}:")
+#                 st.write(renamed_data[col].value_counts(normalize=True))
+#                 st.write("\n")
 
-            st.write("Preview of Decoded Data:")
-            st.dataframe(renamed_data)
+#             st.write("Preview of Decoded Data:")
+#             st.dataframe(renamed_data)
 
-            # CSV Download
-            formatted_date = datetime.now().strftime("%Y%m%d")
-            default_filename = f'IVR_Petaling_Jaya_Survey2023_Decoded_Data_v{formatted_date}.csv'
-            output_filename = st.text_input("Edit the filename for download", value=default_filename)
-            if not output_filename.lower().endswith('.csv'):
-                output_filename += '.csv'
+#             # CSV Download
+#             formatted_date = datetime.now().strftime("%Y%m%d")
+#             default_filename = f'IVR_Petaling_Jaya_Survey2023_Decoded_Data_v{formatted_date}.csv'
+#             output_filename = st.text_input("Edit the filename for download", value=default_filename)
+#             if not output_filename.lower().endswith('.csv'):
+#                 output_filename += '.csv'
 
-            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download Decoded Data as CSV",
-                data=data_as_csv,
-                file_name=output_filename,
-                mime='text/csv'
-            )
+#             data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
+#             st.download_button(
+#                 label="Download Decoded Data as CSV",
+#                 data=data_as_csv,
+#                 file_name=output_filename,
+#                 mime='text/csv'
+#             )
 
-    else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+#     else:
+#         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
-if __name__ == "__main__":
-    run2()
+# if __name__ == "__main__":
+#     run2()
 
 # import streamlit as st
 # import re
