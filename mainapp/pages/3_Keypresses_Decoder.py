@@ -35,39 +35,14 @@ def set_dark_mode_css():
 
 # Call the function to apply the dark mode CSS
 set_dark_mode_css()
-    
-def parse_questions_and_answers(file_contents):
-    """
-    Parses the script from the uploaded .txt file to map questions to their answers.
-    The script is expected to be structured with each question followed by its answers,
-    where each answer is prefixed with a dash.
-    """
-    qa_dict = {}  # Initialize an empty dictionary to store question-answer mappings
-    question_number = 0  # Initialize question number tracking
-
-    lines = file_contents.split('\n')
-    for line in lines:
-        if re.match(r"^\d+\.", line):  # Matches lines that start with a number followed by a dot
-            question_number += 1
-            question_text = line.split('.', 1)[1].strip()  # Extract question text
-            qa_dict[f'FlowNo_{question_number}'] = {'question': question_text, 'answers': []}
-        elif line.startswith("   - "):  # Identifies answer options
-            answer = line.strip("   - ")
-            if question_number > 0:
-                qa_dict[f'FlowNo_{question_number}']['answers'].append(answer)
-
-    return qa_dict
-
-import streamlit as st
-import pandas as pd
-import re
 
 def custom_sort(col):
+    # Improved regex to capture question and flow numbers accurately
     match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
     if match:
         question_num = int(match.group(1))  # Question number
         flow_no = int(match.group(2)) if match.group(2) else 0  # Flow number, default to 0 if not present
-        return (question_num, flow_no)
+        return (question_num, flow_no) 
     else:
         return (float('inf'), 0)
 
@@ -78,44 +53,7 @@ def run():
     if 'renamed_data' in st.session_state:
         renamed_data = st.session_state['renamed_data']
         
-        # Automatically rename FlowNo based on 'qa_dict' if it exists in the session state
-        if 'qa_dict' in st.session_state:
-            qa_dict = st.session_state['qa_dict']
-            # Create a mapping function to rename columns based on qa_dict
-                    
-        def rename_flow_no(col):
-            # Corrected regex to capture question and flow numbers
-            match = re.match(r"FlowNo_(\d+)(?:=(\d+))?", col)
-            if match:
-                question_num, flow_no = match.groups(default="0")  # Default flow_no to "0" if not present
-                # Assuming each 'FlowNo' maps to a single question and a list of answers, directly, without nested 'answers' key
-                # Adjust the structure of qa_dict if it differs
-                question_info = qa_dict.get(f'FlowNo_{question_num}', {})
-                if question_info:
-                    # Finding the answer that matches flow_no for renaming, if flow_no is not "0"
-                    if flow_no != "0":
-                        try:
-                            # Assuming answers are stored in a list and indexed as per flow_no
-                            # This part needs to be adjusted based on how you relate flow numbers to answers in qa_dict
-                            answer_text = question_info['answers'][int(flow_no)-1]  # Indexing from 0, hence -1
-                            new_col_name = f"Q{question_num}_Answer_{flow_no}"
-                            return new_col_name
-                        except IndexError:
-                            # Handle case where flow_no does not match any answer
-                            return col
-                    else:
-                        # If flow_no is "0", it means the column does not directly map to an answer
-                        return f"Q{question_num}"
-                else:
-                    return col
-            else:
-                return col
-
-        # Apply the renaming logic
-        renamed_data.columns = [rename_flow_no(col) for col in renamed_data.columns]
-        st.write("Renamed DataFrame: ")
-        st.write(renamed_data)
-        # Sort columns based on custom criteria after potential renaming
+        # Sort columns based on custom criteria
         sorted_columns = sorted(renamed_data.columns, key=custom_sort)
         renamed_data = renamed_data[sorted_columns]
         
@@ -128,45 +66,58 @@ def run():
         for col in renamed_data.columns[1:-1]:
             st.subheader(f"Question: {col}")
             unique_values = renamed_data[col].unique()
+             
+            # Sort the unique values in ascending order assuming they are integers
             sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
             container = st.container()
-            
+            # Checkbox to exclude entire question
             if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
                 drop_cols.append(col)
                 continue
-
+            
+            container = st.container()
             all_mappings = {}
             drop_vals = []  # To hold flowno values to drop
             
             for val in sorted_unique_values:
                 if pd.notna(val):
-                    # Automatically determine the rename value based on qa_dict
-                    # Extract question and flow numbers from the column name
-                    question_no, flow_no_val = re.match(r"FlowNo_(\d+)=*(\d*)", col)
-                    default_rename_val = qa_dict.get(question_no, {}).get(flow_no_val, "")
-                    
-                    # Use the default value if available, or leave blank if not
-                    readable_val = st.text_input(f"Rename '{val}' to:", value=default_rename_val, key=f"{col}_{val}")
-                    if readable_val and readable_val != val:
-                        all_mappings[val] = readable_val
-                    elif not readable_val:  # If the box is intentionally left blank, assume exclusion
+                    # Checkbox to exclude specific flowno
+                    if container.checkbox(f"Exclude flowno '{val}'", key=f"exclude_{col}_{val}"):
                         drop_vals.append(val)
-            
-            # Apply the mappings and exclusions
-            keypress_mappings[col] = {val: name for val, name in all_mappings.items() if val not in drop_vals}
+                        continue
+                    
+                    readable_val = container.text_input(f"Rename '{val}' to:", value="", key=f"{col}_{val}")
+                    if readable_val:
+                        all_mappings[val] = readable_val
+                        
+            # Remove the excluded flowno values from mappings
+            for val in drop_vals:
+                if val in all_mappings:
+                    del all_mappings[val]
 
+            if all_mappings:
+                keypress_mappings[col] = all_mappings
+            
         if st.button("Decode Keypresses"):
             for col, col_mappings in keypress_mappings.items():
-                if col not in drop_cols:
+                if col not in drop_cols:  # Only apply mappings if the column is not excluded
                     renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
 
+            # Drop excluded columns
             renamed_data.drop(columns=drop_cols, inplace=True)
+            
+            drop_vals = {}
+            
+            # Now drop rows based on excluded FlowNo values
+            for col, vals_to_drop in drop_vals.items():
+                for val in vals_to_drop:
+                    renamed_data = renamed_data[renamed_data[col] != val]
 
             st.session_state['decoded_data'] = renamed_data
-
+            
+            # Display IVR length and shape
             st.write(f'IVR Length: {len(renamed_data)} rows')
             st.write(renamed_data.shape)
-
 
             # Current date for reporting
             today = datetime.now()
@@ -204,8 +155,8 @@ def run():
                 mime='text/csv'
             )
 
-        else:
-            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+    else:
+        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
 if __name__ == "__main__":
     run()
