@@ -82,26 +82,39 @@ def run():
         if 'qa_dict' in st.session_state:
             qa_dict = st.session_state['qa_dict']
             # Create a mapping function to rename columns based on qa_dict
-            def rename_flow_no(col):
-                match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
-                if match:
-                    question_num, flow_no = match.groups()
-                    # Retrieve the renaming pattern from qa_dict
-                    # Assume qa_dict now has a more direct mapping for renaming
-                    # e.g., {'1': {'question': 'Q1 Text', 'answers': {'1': 'NewNameForFlow1', '2': 'NewNameForFlow2'}}}
-                    new_name = qa_dict.get(str(question_num), {}).get('answers', {}).get(str(flow_no), "")
-                    if new_name:
-                        # If a new name is specified in the qa_dict, use it to rename the column
-                        return f"FlowNo_{question_num}={new_name}"
+                    
+        def rename_flow_no(col):
+            # Corrected regex to capture question and flow numbers
+            match = re.match(r"FlowNo_(\d+)(?:=(\d+))?", col)
+            if match:
+                question_num, flow_no = match.groups(default="0")  # Default flow_no to "0" if not present
+                # Assuming each 'FlowNo' maps to a single question and a list of answers, directly, without nested 'answers' key
+                # Adjust the structure of qa_dict if it differs
+                question_info = qa_dict.get(f'FlowNo_{question_num}', {})
+                if question_info:
+                    # Finding the answer that matches flow_no for renaming, if flow_no is not "0"
+                    if flow_no != "0":
+                        try:
+                            # Assuming answers are stored in a list and indexed as per flow_no
+                            # This part needs to be adjusted based on how you relate flow numbers to answers in qa_dict
+                            answer_text = question_info['answers'][int(flow_no)-1]  # Indexing from 0, hence -1
+                            new_col_name = f"Q{question_num}_Answer_{flow_no}"
+                            return new_col_name
+                        except IndexError:
+                            # Handle case where flow_no does not match any answer
+                            return col
                     else:
-                        # If no new name is specified, return the column name as is
-                        return col
+                        # If flow_no is "0", it means the column does not directly map to an answer
+                        return f"Q{question_num}"
                 else:
                     return col
+            else:
+                return col
 
-            # Apply the renaming
-            renamed_data.columns = [rename_flow_no(col) for col in renamed_data.columns]
-        
+        # Apply the renaming logic
+        renamed_data.columns = [rename_flow_no(col) for col in renamed_data.columns]
+        st.write("Renamed DataFrame: ")
+        st.write(renamed_data)
         # Sort columns based on custom criteria after potential renaming
         sorted_columns = sorted(renamed_data.columns, key=custom_sort)
         renamed_data = renamed_data[sorted_columns]
