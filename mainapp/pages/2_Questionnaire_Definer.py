@@ -74,20 +74,6 @@ def parse_questions_and_answers(file_contents):
 
     return questions_and_answers
 
-# Function to sort columns based on custom criteria
-def custom_sort(col):
-    try:
-        # Improved regex to capture question and flow numbers accurately
-        match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
-        if match:
-            question_num = int(match.group(1))  # Question number
-            flow_no = int(match.group(2)) if match.group(2) else 0  # Flow number, default to 0 if not present
-            return (question_num, flow_no)
-    except Exception as e:
-        pass  # Handle the case where the regex doesn't match
-    # Return a tuple that sorts non-matching columns to the end
-    return (float('inf'), 0)
-
 def run1():
     st.title('Questionnaire Definer and Keypresses Decoder')
     
