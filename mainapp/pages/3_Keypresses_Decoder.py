@@ -82,71 +82,60 @@ def run():
 
         keypress_mappings = {}
         drop_cols = []
-        
+        excluded_flow_nos = {}  # Initialize here for the whole session
+
         # Extract the relevant columns (excluding the first and last non-question columns).
         question_columns = renamed_data.columns[1:-1]
-        # Iterate through each column with enumerate to get an index, adjust the start of enumerate to 1.
-        for i, col in enumerate(question_columns, start=1):  # This excludes the very last question.
-            st.subheader(f"Q{i}: {col}")  # Use the index for numbering and display the column name.
+
+        for i, col in enumerate(question_columns, start=1):
+            st.subheader(f"Q{i}: {col}")
             unique_values = renamed_data[col].unique()
-            # Sort the unique values in ascending order assuming they are integers
             sorted_unique_values = sorted(unique_values, key=lambda x: (int(x.split('=')[1]) if x != '' else float('inf')))
-            container = st.container()
+            
             # Checkbox to exclude entire question
-            if container.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
+            if st.checkbox(f"Exclude entire Question: {col}", key=f"exclude_{col}"):
                 drop_cols.append(col)
                 continue
             
-            container = st.container()
             all_mappings = {}
-            drop_vals = []  # To hold flowno values to drop
-            excluded_flow_nos = {}
-            
-            # Use enumerate to get both index and value
+            excluded_flow_nos[col] = []
+
             for idx, val in enumerate(sorted_unique_values):
                 if pd.notna(val):
-                    autofill_value = simple_mappings.get(val, "")  # Use the mapping as autofill, default to empty if not found
-                    # Create a unique key by including the column name, value, and index
+                    autofill_value = simple_mappings.get(val, "")
                     unique_key = f"{col}_{val}_{idx}"
                     
                     # Checkbox to decide whether to exclude this specific FlowNo value
                     if st.checkbox(f"Exclude '{val}'", key=f"exclude_{unique_key}"):
-                        excluded_flow_nos[val] = True  # Mark this FlowNo as excluded
-                        continue  # Skip further processing for this FlowNo
+                        excluded_flow_nos[col].append(val)
+                        continue
+                    
                     readable_val = st.text_input(f"Rename '{val}' to:", value=autofill_value, key=unique_key)
                     if readable_val:
                         all_mappings[val] = readable_val
-                   
-            # Remove the excluded flowno values from mappings
-            for val in drop_vals:
-                if val in all_mappings:
-                    del all_mappings[val]
-                    
-            # Now, when processing the mappings for renaming or exclusion,
-            # check against the excluded_flow_nos dictionary
-            for val in list(all_mappings):
-                if val in excluded_flow_nos:
-                    del all_mappings[val]  # Remove the mapping for excluded FlowNo values
 
             if all_mappings:
                 keypress_mappings[col] = all_mappings
-            
+
         if st.button("Decode Keypresses"):
+            # Drop entire questions if needed
+            if drop_cols:
+                renamed_data.drop(columns=drop_cols, inplace=True)
+
+            # Apply mappings and exclude specific FlowNo values
             for col, col_mappings in keypress_mappings.items():
-                if col not in drop_cols:  # Only apply mappings if the column is not excluded
+                if col in renamed_data.columns:  # Ensure column exists
                     renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
+                    if col in excluded_flow_nos:
+                        for val_to_exclude in excluded_flow_nos[col]:
+                            renamed_data = renamed_data[renamed_data[col] != val_to_exclude]
 
-            # Drop excluded columns
-            renamed_data.drop(columns=drop_cols, inplace=True)
+            st.session_state['decoded_data'] = renamed_data  # Save updated DataFrame to session state
             
-            drop_vals = {}
+            # Display updated DataFrame and other information...
             
-            # Now drop rows based on excluded FlowNo values
-            for col, vals_to_drop in drop_vals.items():
-                for val in vals_to_drop:
-                    renamed_data = renamed_data[renamed_data[col] != val]
-
-            st.session_state['decoded_data'] = renamed_data
+            st.write("Preview of Decoded Data:")
+            st.dataframe(renamed_data)
             
             # Display IVR length and shape
             st.write(f'IVR Length: {len(renamed_data)} rows')
