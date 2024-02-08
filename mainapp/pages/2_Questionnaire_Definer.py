@@ -1,7 +1,6 @@
 import streamlit as st
 from PIL import Image
-from modules.security_utils import check_password
-from modules.decoder import decode_keypresses
+import json
 
 # Configure the default settings of the page.
 icon = Image.open('./images/invoke_logo.png')
@@ -34,64 +33,49 @@ def set_dark_mode_css():
 ## Call the function to apply the dark mode CSS
 set_dark_mode_css()
 
-import re
-from datetime import datetime
-import pandas as pd
-
 # Function to rename columns based on user input
 def rename_columns(df, new_column_names):
     mapping = {old: new for old, new in zip(df.columns, new_column_names) if new}
     return df.rename(columns=mapping, inplace=False)
 
-# Function to parse questions from the uploaded .txt file
-def parse_questions_and_answers(file_contents):
+# Function to parse questions and answers from the uploaded JSON data
+def parse_questions_and_answers(json_data):
     """
-    Parses the uploaded .txt file to extract questions and their corresponding answers.
-    Expected file format:
-        1. Question text
-        - Answer 1
-        - Answer 2
-        ...
-    Returns a dictionary where keys are 'Q{question_number}' and values are dictionaries
-    containing the question text and a list of its answers.
+    Parses the uploaded JSON data to extract questions and their corresponding answers.
+    Expected JSON format is a dictionary with keys as 'Q{question_number}' and values are dictionaries
+    containing the question text and a dictionary of its answers.
     """
     questions_and_answers = {}
-    current_question_key = None
-
-    for line in file_contents.split('\n'):
-        line = line.strip()
-        if line.startswith('-'):  # This line is an answer
-            answer_text = line[1:].strip()  # Remove the dash and leading whitespace
-            if current_question_key and answer_text:  # Make sure there's a question to attach this answer to
-                questions_and_answers[current_question_key]['answers'].append(answer_text)
-        else:
-            match = re.match(r"(\d+)\.\s*(.*)", line)
-            if match:
-                question_number, question_text = match.groups()
-                current_question_key = f"Q{int(question_number)}"
-                # Initialize the dictionary entry for this question with the question text and an empty list for answers
-                questions_and_answers[current_question_key] = {'question': question_text.strip(), 'answers': []}
-
+    for q_key, q_value in json_data.items():
+        question_text = q_value['question']
+        answers = [answer for _, answer in q_value['answers'].items()]
+        questions_and_answers[q_key] = {'question': question_text, 'answers': answers}
     return questions_and_answers
 
 def run1():
-    st.title('Questionnaire Definer and Keypresses Decoder')
+    st.title('Questionnaire Definer🔑')
     
     # Check if 'qa_dict' is already in session state, otherwise initialize it
     if 'qa_dict' not in st.session_state:
         st.session_state['qa_dict'] = {}
 
-    # File uploader to allow users to upload a .txt file with scripts
-    uploaded_file = st.file_uploader("Choose a file", type='txt')
+    # File uploader to allow users to upload a JSON file with scripts
+    uploaded_file = st.file_uploader("Choose a file", type=['json', 'txt'])
     if uploaded_file is not None:
-        # Reading the uploaded file and storing its contents
+        # Reading the uploaded file content
         file_contents = uploaded_file.getvalue().decode("utf-8")
-        st.session_state['qa_dict'] = parse_questions_and_answers(file_contents)
-        st.success("Questions and answers parsed successfully.")
+        try:
+            # Assuming the uploaded file is JSON
+            json_data = json.loads(file_contents)
+            st.session_state['qa_dict'] = parse_questions_and_answers(json_data)
+            st.success("Questions and answers parsed successfully.")
+        except json.JSONDecodeError:
+            st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
     else:
         # Optional: Inform the user to upload a file
         st.info("Please upload a file to parse questions and their answers.")
     
+    # Remaining code for displaying questions and potentially renaming columns goes here
     st.markdown("## Preview of questions and their answers.")
 
     # Use an expander for the entire preview section
@@ -111,12 +95,6 @@ def run1():
         # Assuming qa_dict is loaded into the session state as well
         st.session_state.get('qa_dict', {})
     
-        # Decode keypresses before renaming columns
-        decoded_data = decode_keypresses(cleaned_data, st.session_state['qa_dict'])
-        st.session_state['decoded_data'] = decoded_data
-        st.write("Preview of Decoded Data:")
-        st.dataframe(decoded_data.head())
-        
         # Create a two-column layout
         col1, col2 = st.columns(2)
 
@@ -140,7 +118,7 @@ def run1():
         if st.button("Apply New Column Names"):
             updated_df = rename_columns(cleaned_data, new_column_names)
             st.session_state['renamed_data'] = updated_df  # Save the DataFrame with renamed columns
-            st.write("DataFrame with Decoded Keypresses and Renamed Columns:")
+            st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
 
     else:
@@ -148,4 +126,3 @@ def run1():
 
 if __name__ == "__main__":
     run1()
-
