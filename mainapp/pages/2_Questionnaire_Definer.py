@@ -53,14 +53,16 @@ def parse_questions_and_answers(json_data):
     return questions_and_answers
 
 def run1():
-    st.title('Questionnaire Definer🔑')
+    st.title('Questionnaire Definer🎡')
+    
+    st.markdown("### Upload Script Files (.txt,.json format)")
     
     # Check if 'qa_dict' is already in session state, otherwise initialize it
     if 'qa_dict' not in st.session_state:
         st.session_state['qa_dict'] = {}
 
     # File uploader to allow users to upload a JSON file with scripts
-    uploaded_file = st.file_uploader("Choose a file", type=['json', 'txt'])
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['json', 'txt'])
     if uploaded_file is not None:
         # Reading the uploaded file content
         file_contents = uploaded_file.getvalue().decode("utf-8")
@@ -68,7 +70,7 @@ def run1():
             # Assuming the uploaded file is JSON
             json_data = json.loads(file_contents)
             st.session_state['qa_dict'] = parse_questions_and_answers(json_data)
-            st.success("Questions and answers parsed successfully.")
+            st.success("Questions and answers parsed successfully.✨")
         except json.JSONDecodeError:
             st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
     else:

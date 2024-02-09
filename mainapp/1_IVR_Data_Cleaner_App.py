@@ -41,7 +41,7 @@ def run():
 
 
 def process_file(uploaded_file):
-    df = pd.read_csv(uploaded_file, skiprows=1, names=range(150), engine='python')
+    df = pd.read_csv(uploaded_file, skiprows=1, names=range(100), engine='python')
     df.dropna(axis='columns', how='all', inplace=True)
     df.columns = df.iloc[0]
     df_phonenum = df[['PhoneNo']]
@@ -74,8 +74,9 @@ def run():
         st.session_state['file_count'] = 0
 
     if check_password():
+        st.title('IVR Data Cleaner🏹')
         # Using markdown to create a top heading (H2)
-        st.markdown("## Upload IVR Files (.csv format)")
+        st.markdown("### Upload IVR Files (.csv format)")
 
         # Setting up the file uploader widget with the new label
         uploaded_files = st.file_uploader("Choose CSV files", accept_multiple_files=True)
@@ -118,22 +119,38 @@ def run():
             # Update the placeholder with the new message after processing is complete
             st.success("Files have been processed successfully.✨")
             
-            st.markdown("## **IVR Campaign Basic Statistics:**")
-            st.write(f"Total calls made: {st.session_state['total_calls_made']:,}")
-            st.write(f"Total of pick-ups: {st.session_state['total_pickups']:,}")
-            st.write(f"Total CRs: {st.session_state['total_CRs']:,}")
-            st.write(f"Pick-up Rate: {st.session_state['pick_up_rate_percentage']:.2f}%")
-            st.write(f"CR Rate: {st.session_state['cr_rate_percentage']:.2f}%")
+            st.markdown("### IVR Campaign Basic Statistics:")
+            
+            # Organizing your data into a dictionary
+            data = {
+                "Metric": ["Total calls made", "Total of pick-ups", "Total CRs", "Pick-up Rate", "CR Rate"],
+                "Value": [
+                    f"{st.session_state['total_calls_made']:,}",
+                    f"{st.session_state['total_pickups']:,}",
+                    f"{st.session_state['total_CRs']:,}",
+                    f"{st.session_state['pick_up_rate_percentage']:.2f}%",
+                    f"{st.session_state['cr_rate_percentage']:.2f}%"
+                ]
+            }
+
+            # Convert the dictionary to a pandas DataFrame
+            df_stats = pd.DataFrame(data)
+
+            # Adjust the DataFrame's index to start from 1 instead of 0
+            df_stats.index = df_stats.index + 1
+
+            # Display the DataFrame as a table in Streamlit
+            st.table(df_stats)
 
             # Display a snippet of the cleaned data
-            st.markdown("## Cleaned Data Preview:")
+            st.markdown("### Cleaned Data Preview:")
             st.dataframe(combined_data.head())  # Show the first 5 rows as a preview
 
             # Current date for the filename
             formatted_date = datetime.now().strftime("%Y%m%d")
 
             # Format the default filename
-            default_filename = f'IVR_Petaling_Jaya_Survey2023_Used_Phonenum_v{formatted_date}.csv'
+            default_filename = f'IVR_Petaling_Jaya_Survey2023_Cleaned_Data_v{formatted_date}.csv'
 
             # Use the default filename in the text input, allowing the user to edit it
             output_filename = st.text_input("Edit the filename for download", value=default_filename)
@@ -153,11 +170,67 @@ def run():
                 file_name=output_filename,
                 mime='text/csv'
             )
+        
+            if st.session_state['processed']:
+                # Concatenate all phone numbers from processed data
+                phonenum_combined = pd.concat(st.session_state['all_phonenum'], axis=0)
+                
+                # Check and report duplicated numbers before dropping them to correctly report total and duplicated counts
+                dup = phonenum_combined.duplicated().sum()
+                
+                # Drop duplicated numbers for the updated total
+                phonenum_combined_cleaned = phonenum_combined.drop_duplicates()
 
+                # Display a preview of these used phone numbers
+                st.markdown("### Preview of Phone Numbers to be Excluded in the Next Sampling:")
+                st.dataframe(phonenum_combined_cleaned.head())  # Show the first 5 rows as a preview
+
+                # Organizing your data into a dictionary for phone numbers
+                phone_data = {
+                    "Metric": [
+                        "Total count of phone numbers that need to be excluded in the next sampling", 
+                        "Total duplicated numbers", 
+                        "Total numbers after dropping duplicate numbers"
+                    ],
+                    "Count": [
+                        f"{phonenum_combined.shape[0]}",
+                        f"{dup}",
+                        f"{phonenum_combined_cleaned.shape[0]}"
+                    ]
+                }
+
+                # Convert the dictionary to a pandas DataFrame
+                df_phone_stats = pd.DataFrame(phone_data)
+
+                # Adjust the DataFrame's index to start from 1 instead of 0
+                df_phone_stats.index = df_phone_stats.index + 1
+
+                # Display the DataFrame as a table in Streamlit
+                st.table(df_phone_stats)
+                
+                # Prepare for downloading the used phone numbers
+                # Current date for the filename specific to unique phone numbers
+                formatted_date = datetime.now().strftime("%Y%m%d")
+                default_filename_phonenum = f'IVR_Petaling_Jaya_Survey2023_Used_Phonenum_v{formatted_date}.csv'
+                output_filename_phonenum = st.text_input("Edit the filename for download", value=default_filename_phonenum)
+
+                # Ensure the filename ends with '.csv'
+                if not output_filename_phonenum.lower().endswith('.csv'):
+                    output_filename_phonenum += '.csv'
+
+                # Convert the unique phone numbers dataframe to CSV for download
+                phonenum_data_as_csv = phonenum_combined.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Download Used Phone Numbers as CSV",
+                    data=phonenum_data_as_csv,
+                    file_name=output_filename_phonenum,
+                    mime='text/csv'
+                )
+
+        
             # Add instructions for navigating to the next page
-            st.write("To continue to the Questionnaire Definition, please navigate to the 'Questionairre-Definer_Keypresses-Decoder' app.")
-    
-        # ... [Rest of your code] ...
+            st.write("To continue to the Questionnaire Definition, please navigate to the 'Questionairre-Definer & Keypresses-Decoder🎉' app.")
 
+        
 if __name__ == "__main__":
     run()
