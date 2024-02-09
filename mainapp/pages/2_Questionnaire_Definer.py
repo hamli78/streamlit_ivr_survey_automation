@@ -1,3 +1,4 @@
+###Paling baru 9 feb pukul 8s
 import streamlit as st
 from PIL import Image
 import json
@@ -128,3 +129,5 @@ def run1():
 
 if __name__ == "__main__":
     run1()
+
+
