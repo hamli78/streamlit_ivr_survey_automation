@@ -1,4 +1,5 @@
 ###Paling baru 9 feb pukul 8s
+### perlu tambah feature untuk buat hantar script file
 import streamlit as st
 from PIL import Image
 import json
