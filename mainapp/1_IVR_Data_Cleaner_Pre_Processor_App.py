@@ -1,22 +1,17 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from modules.security_utils import check_password  # Assuming this is a custom module
+from modules.security_utils import check_password  
 from PIL import Image
 import numpy as np
 
 # Configure the default settings of the page.
+icon = Image.open('./images/invoke_logo.png')
 st.set_page_config(
     page_title='IVR Data Cleaner 🧮',
     layout="wide",
-    page_icon=Image.open('./images/invoke_logo.png'),
-    initial_sidebar_state="expanded",
-    menu_items={
-        'Get Help': None,
-        'Report a bug': None,
-        'About': None,
-        'GitHub': None
-    }
+    page_icon=icon,
+    initial_sidebar_state="expanded"
 )
 
 def set_dark_mode_css():
