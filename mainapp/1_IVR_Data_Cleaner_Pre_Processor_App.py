@@ -4,46 +4,43 @@ from datetime import datetime
 from modules.security_utils import check_password  # Assuming this is a custom module
 from PIL import Image
 import numpy as np
-print("🧹 🏹 🎥")
-def run():
-    # Configure the default settings of the page.
-    icon = Image.open('./images/invoke_logo.png')
-    st.set_page_config(
-        page_title='IVR Data Cleaner 🧮',
-        layout="wide",
-        page_icon=icon,
-        initial_sidebar_state="expanded",
-        menu_items={
-            'Get Help': None,
-            'Report a bug': None,
-            'About': None,
-            'GitHub': None
+
+# Configure the default settings of the page.
+st.set_page_config(
+    page_title='IVR Data Cleaner 🧮',
+    layout="wide",
+    page_icon=Image.open('./images/invoke_logo.png'),
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None,
+        'GitHub': None
+    }
+)
+
+def set_dark_mode_css():
+    # Define CSS for dark mode with broader coverage
+    dark_mode_css = """
+    <style>
+        html, body, [class*="View"] {
+            color: #ffffff !important;  /* Text Color */
+            background-color: #111111 !important;  /* Background Color */
         }
-    )
+        .streamlit-container {
+            background-color: #111111 !important;
+        }
+        .stTextInput > div > div > input {
+            color: #ffffff !important;
+        }
+        /* You can add additional CSS rules here */
+    </style>
+    """
+    # Inject CSS into the Streamlit app
+    st.markdown(dark_mode_css, unsafe_allow_html=True)
 
-    def set_dark_mode_css():
-        # Define CSS for dark mode
-        dark_mode_css = """
-        <style>
-            html, body, [class*="View"] {
-                color: #ffffff;  /* Text Color */
-                background-color: #111111;  /* Background Color */
-            }
-            .stTextInput > div > div > input {
-                color: #ffffff;
-                background-color: #111111;
-            }
-            .stCheckbox > label {
-                color: #ffffff;
-            }
-            /* Add other widget-specific styles here */
-        </style>
-        """
-        # Inject CSS into the Streamlit app
-        st.markdown(dark_mode_css, unsafe_allow_html=True)
-
-    # Apply the dark mode CSS
-    set_dark_mode_css()
+# Apply the dark mode CSS
+set_dark_mode_css()
 
 
 def process_file(uploaded_file):
