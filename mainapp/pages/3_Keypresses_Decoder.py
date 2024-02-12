@@ -11,13 +11,7 @@ st.set_page_config(
     page_title='IVR Data Cleaner 🧮',
     layout="wide",
     page_icon=icon,
-    initial_sidebar_state="expanded",
-    menu_items={
-        'Get Help': None,
-        'Report a bug': None,
-        'About': None,
-        'GitHub': None
-    }
+    initial_sidebar_state="expanded"
 )
 
 def set_dark_mode_css():
