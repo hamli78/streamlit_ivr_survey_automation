@@ -1,7 +1,3 @@
-##paling baru 11 feb ,page 2 accept script but after this make it display rename first like before
-
-###Paling baru 9 feb pukul 8s
-### perlu tambah feature untuk buat hantar script file
 import streamlit as st
 from PIL import Image
 import json
@@ -17,17 +13,18 @@ st.set_page_config(
 )
 
 def set_dark_mode_css():
+    # Apply dark mode CSS to the Streamlit app.
     dark_mode_css = """
     <style>
         html, body, [class*="View"] {
             color: #ffffff;  /* Text Color */
             background-color: #111111;  /* Background Color */
         }
-        .stTextInput > div > div > input {
+        .stTextInput > div > div > input, .stFileUploader > div > div > button {
             color: #ffffff;
             background-color: #111111;
         }
-        .stCheckbox > label {
+        .stCheckbox > label, .stButton > button {
             color: #ffffff;
         }
         /* Add other widget-specific styles here */
@@ -35,15 +32,15 @@ def set_dark_mode_css():
     """
     st.markdown(dark_mode_css, unsafe_allow_html=True)
 
-## Call the function to apply the dark mode CSS
-set_dark_mode_css()
+set_dark_mode_css()  # Call the function to apply the dark mode CSS
 
-# Function to rename columns based on user input
 def rename_columns(df, new_column_names):
+    # Rename dataframe columns based on user input.
     mapping = {old: new for old, new in zip(df.columns, new_column_names) if new}
     return df.rename(columns=mapping, inplace=False)
 
 def parse_questions_and_answers(json_data):
+    # Parse questions and answers from JSON data.
     questions_and_answers = {}
     for q_key, q_value in json_data.items():
         question_text = q_value['question']
@@ -51,11 +48,12 @@ def parse_questions_and_answers(json_data):
         questions_and_answers[q_key] = {'question': question_text, 'answers': answers}
     return questions_and_answers
 
-# New function for parsing text content
 def parse_text_to_json(text_content):
+    # Convert formatted text content into JSON-like structure.
     data = {}
     question_re = re.compile(r'^(\d+)\.\s+(.*)')
     answer_re = re.compile(r'^\s+-\s+(.*)')
+    current_question = ""
 
     for line in text_content.splitlines():
         question_match = question_re.match(line)
@@ -65,7 +63,7 @@ def parse_text_to_json(text_content):
             q_number, q_text = question_match.groups()
             current_question = f"Q{q_number}"
             data[current_question] = {"question": q_text, "answers": {}}
-        elif answer_match:
+        elif answer_match and current_question:
             answer_text = answer_match.groups()[0]
             flow_no = len(data[current_question]["answers"]) + 1
             flow_no_key = f"FlowNo_{int(q_number)+1}={flow_no}"
@@ -75,9 +73,11 @@ def parse_text_to_json(text_content):
 
 def run1():
     st.title('Questionnaire Definer🎡')
-    st.markdown("### Upload Script Files (.txt,.json format)")
+    st.markdown("### Upload Script Files (.txt, .json format)")
 
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['json', 'txt'])
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
+    file_parsed = False  # Track if a file has been parsed
+
     if uploaded_file is not None:
         file_contents = uploaded_file.getvalue().decode("utf-8")
 
@@ -87,46 +87,40 @@ def run1():
                 parsed_data = parse_questions_and_answers(json_data)
                 st.session_state['qa_dict'] = parsed_data
                 st.success("JSON questions and answers parsed successfully.✨")
+                file_parsed = True
             except json.JSONDecodeError:
                 st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
-        else:  # Assume text format
+        else:  # For text format
             parsed_data = parse_text_to_json(file_contents)
             st.session_state['qa_dict'] = parsed_data
             st.success("Text questions and answers parsed successfully.✨")
+            file_parsed = True
 
-        if 'qa_dict' in st.session_state:
-            st.markdown("## Preview of questions and their answers.")
-            with st.expander("Click to view", expanded=False):
-                for q_key, q_info in st.session_state['qa_dict'].items():
-                    st.subheader(f"{q_key}: {q_info['question']}")
-                    answers = q_info['answers']
-                    
-                    # Check if answers is a dictionary and then iterate over its values
-                    if isinstance(answers, dict):
-                        for answer in answers.values():
-                            st.write(f"- {answer}")
-                    # If answers is a list, iterate directly over it
-                    elif isinstance(answers, list):
-                        for answer in answers:
-                            st.write(f"- {answer}")
-
-        # Display inputs for manual renaming
-        new_column_names = {}
-        renamed_columns = []
-        for idx, default_name in enumerate(new_column_names):
-            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_name, key=f"new_name_{idx}")
-            renamed_columns.append(new_name)
-
-    # Assuming 'cleaned_data' needs to be prepared or loaded before this step.
-    # This code block should be conditioned to only run after both 'cleaned_data' and 'qa_dict' are available.
-    if 'cleaned_data' in st.session_state and 'qa_dict' in st.session_state:
+     # Section for manual and auto-filled renaming
+    st.markdown("## Rename Columns")
+    if 'cleaned_data' not in st.session_state:
+        st.warning("No cleaned data available for renaming.")
+    else:
         cleaned_data = st.session_state['cleaned_data']
+        column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
 
-        st.write("Rename Columns:")
+        # Manual input for renaming columns, with special handling for the first and last columns
         new_column_names = []
-        for idx, col in enumerate(cleaned_data.columns):
-            default_value = "phonenum" if idx == 0 else st.session_state['qa_dict'].get(f"Q{idx}", {}).get('question', col)
-            new_name = st.text_input(f"Column {idx+1} ({col}):", value=default_value, key=f"new_name_{idx}")
+        for idx, default_name in enumerate(column_names_to_display):
+            if idx == 0:
+                # First column reserved for "phonenum"
+                default_value = "phonenum"
+            elif idx == len(column_names_to_display) - 1:
+                # Last column reserved for "Set"
+                default_value = "Set"
+            elif file_parsed:
+                # Adjust question numbering to start from column 1, not 0
+                question_key = f"Q{idx}"  # Adjusted to match questions starting from 1
+                default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
+            else:
+                default_value = default_name
+
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
             new_column_names.append(new_name)
 
         if st.button("Apply New Column Names"):
@@ -134,9 +128,6 @@ def run1():
             st.session_state['renamed_data'] = updated_df
             st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
-    else:
-        if 'qa_dict' in st.session_state:  # Show this message only if questions are already loaded
-            st.error("No cleaned data found. Please ensure your data is ready for column renaming.")
 
 if __name__ == "__main__":
     run1()

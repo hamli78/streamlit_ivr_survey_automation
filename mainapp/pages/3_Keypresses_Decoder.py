@@ -145,7 +145,7 @@ def run():
                     if col in renamed_data.columns:  # Ensure the column exists
                         st.write(f"Unique Values in {col} before mapping:", renamed_data[col].unique())
                         
-        st.write("P/S :After uploading the file, You can review the FlowNo below and check if got any unique FlowNo that is not in the original Script, or drop questions that you don't want to include(analyze) in the DataFrame. Additionally, you can remove any FlowNo entries that don't exist in the script due to mistaken extra keypress entries made by the call center.")
+        st.write("P/S : After uploading the file, You can review the Unique FlowNo above and check if got any unique FlowNo that is not in the original Script;(it might be due to the user mispressed the key), or drop questions that you don't want to include(analyze) in the DataFrame. Additionally, you can remove any FlowNo entries that don't exist in the script due to mistaken extra keypress entries made by the call center during the campaign that is not alligned with the original script.")
            
         for i, col in enumerate(question_columns, start=1):
             st.subheader(f"Q{i}: {col}")
