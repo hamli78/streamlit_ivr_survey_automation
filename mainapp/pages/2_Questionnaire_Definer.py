@@ -1,3 +1,5 @@
+##paling baru 11 feb ,page 2 accept script but after this make it display rename first like before
+
 ###Paling baru 9 feb pukul 8s
 ### perlu tambah feature untuk buat hantar script file
 import streamlit as st
@@ -82,21 +84,38 @@ def run1():
         if uploaded_file.type == "application/json":
             try:
                 json_data = json.loads(file_contents)
-                st.session_state['qa_dict'] = parse_questions_and_answers(json_data)
+                parsed_data = parse_questions_and_answers(json_data)
+                st.session_state['qa_dict'] = parsed_data
                 st.success("JSON questions and answers parsed successfully.✨")
             except json.JSONDecodeError:
                 st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
         else:  # Assume text format
-            st.session_state['qa_dict'] = parse_text_to_json(file_contents)
+            parsed_data = parse_text_to_json(file_contents)
+            st.session_state['qa_dict'] = parsed_data
             st.success("Text questions and answers parsed successfully.✨")
 
-    if 'qa_dict' in st.session_state:
-        st.markdown("## Preview of questions and their answers.")
-        with st.expander("Click to view", expanded=False):
-            for q_key, q_info in st.session_state['qa_dict'].items():
-                st.subheader(f"{q_key}: {q_info['question']}")
-                for answer in q_info['answers'].values():
-                    st.write(f"- {answer}")
+        if 'qa_dict' in st.session_state:
+            st.markdown("## Preview of questions and their answers.")
+            with st.expander("Click to view", expanded=False):
+                for q_key, q_info in st.session_state['qa_dict'].items():
+                    st.subheader(f"{q_key}: {q_info['question']}")
+                    answers = q_info['answers']
+                    
+                    # Check if answers is a dictionary and then iterate over its values
+                    if isinstance(answers, dict):
+                        for answer in answers.values():
+                            st.write(f"- {answer}")
+                    # If answers is a list, iterate directly over it
+                    elif isinstance(answers, list):
+                        for answer in answers:
+                            st.write(f"- {answer}")
+
+        # Display inputs for manual renaming
+        new_column_names = {}
+        renamed_columns = []
+        for idx, default_name in enumerate(new_column_names):
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_name, key=f"new_name_{idx}")
+            renamed_columns.append(new_name)
 
     # Assuming 'cleaned_data' needs to be prepared or loaded before this step.
     # This code block should be conditioned to only run after both 'cleaned_data' and 'qa_dict' are available.
