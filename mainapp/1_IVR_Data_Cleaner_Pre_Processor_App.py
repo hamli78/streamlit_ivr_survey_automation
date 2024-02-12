@@ -5,14 +5,32 @@ from modules.security_utils import check_password
 from PIL import Image
 import numpy as np
 
+# # Hide streamlit header and footer
+# hide_st_style = """
+#             <style>
+#             #MainMenu {visibility: hidden;}
+#             footer {visibility: hidden;}
+#             header {visibility: hidden;}
+#             </style>
+#             """
+
+# # configure the default settings of the page.
+# icon = Image.open('./images/invoke_logo.png')
+# st.set_page_config(page_icon=icon,page_title='IVR Data Cleaner 🧮',
+#     layout="wide",
+#     page_icon=icon,
+#     initial_sidebar_state="expanded")
+
+# st.markdown(hide_st_style, unsafe_allow_html=True)
+
 # Configure the default settings of the page.
-icon = Image.open('./images/invoke_logo.png')
 st.set_page_config(
     page_title='IVR Data Cleaner 🧮',
     layout="wide",
-    page_icon=icon,
-    initial_sidebar_state="expanded"
+    page_icon=Image.open('./images/invoke_logo.png'),
+    initial_sidebar_state="expanded",
 )
+
 
 def set_dark_mode_css():
     # Define CSS for dark mode with broader coverage
