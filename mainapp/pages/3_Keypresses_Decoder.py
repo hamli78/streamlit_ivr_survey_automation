@@ -243,12 +243,13 @@ def run():
             st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
             st.write(f'Preview of Total of Null Values per Column:')
             st.write(renamed_data.isnull().sum())
-
-            # Sanity check
+                
+            print("Sanity check for values in each column")
             for col in renamed_data.columns:
-                st.write(f"Sanity check for {col}:")
-                st.write(renamed_data[col].value_counts(normalize=True))
-                st.write("\n")
+                if col != 'phonenum':
+                    st.write(f"Sanity check for {col}:")
+                    st.write(renamed_data[col].value_counts(normalize=True))
+                    st.write("\n")
                 
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
