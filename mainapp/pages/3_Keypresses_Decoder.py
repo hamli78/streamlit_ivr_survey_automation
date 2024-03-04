@@ -257,10 +257,6 @@ def run():
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
 
-            # Ensure the filename ends with '.csv'
-            if not output_filename.lower().endswith('.csv'):
-                output_filename += '.csv'
-
             # Convert the unique phone numbers dataframe to CSV for download
             data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
             st.download_button(
