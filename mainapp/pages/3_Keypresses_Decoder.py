@@ -187,9 +187,6 @@ def run():
                 keypress_mappings[col] = all_mappings
 
         if st.button("Decode Keypresses"):
-            st.session_state['decoded'] = True  # Set a flag in session state
-            
-        if 'decoded' in st.session_state and st.session_state['decoded']:
             
             # Use an expander for optional debugging output
             with st.expander("Show keypress mappings"):
@@ -254,38 +251,37 @@ def run():
             
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
-            st.session_state['renamed_data'] = renamed_data
-            renamed_data_decoded = renamed_data
-            st.session_state['renamed_data_decoded'] = renamed_data_decoded
-            
-    if 'renamed_data_decoded' in st.session_state:
-        
-        # Example of retrieving and using renamed_data from session state
-        data_as_csv = st.session_state['renamed_data_decoded'].to_csv(index=False).encode('utf-8')
 
-        if 'output_filename' not in st.session_state:
-            formatted_date = datetime.now().strftime("%Y%m%d")
-            st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
+            # Initialize session state for output_filename if it doesn't already exist
+            if 'output_filename' not in st.session_state:
+                formatted_date = datetime.now().strftime("%Y%m%d")
+                st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
 
-        def update_output_filename():
-            if st.session_state.output_filename_input and not st.session_state.output_filename_input.lower().endswith('.csv'):
-                st.session_state.output_filename = st.session_state.output_filename_input + '.csv'
-            else:
-                st.session_state.output_filename = st.session_state.output_filename_input
+            # Function to update the filename in session state based on user input
+            def update_output_filename():
+                if st.session_state.output_filename_input and not st.session_state.output_filename_input.lower().endswith('.csv'):
+                    st.session_state.output_filename = st.session_state.output_filename_input + '.csv'
+                else:
+                    st.session_state.output_filename = st.session_state.output_filename_input
 
-        # User input for editing the filename, tied directly to session state
-        st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
+            # User input for editing the filename, tied directly to session state
+            st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
 
-        # Use the session state for the filename in the download button
-        st.download_button(
-            label="Download Decoded Data as CSV",
-            data=data_as_csv,
-            file_name=st.session_state['output_filename'],
-            mime='text/csv'
-        )
+            # Assuming renamed_data is defined elsewhere and is the data you want to download
+            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
+
+            # Use the session state for the filename in the download button
+            st.download_button(
+                label="Download Decoded Data as CSV",
+                data=data_as_csv,
+                file_name=st.session_state['output_filename'],
+                mime='text/csv'
+            )
+    
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
-        
+
+
+
 if __name__ == "__main__":
     run()
-
