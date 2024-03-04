@@ -166,7 +166,7 @@ def run():
             formatted_date = datetime.now().strftime("%Y%m%d")
 
             # Format the default filename
-            default_filename = f'IVR_Petaling_Jaya_Survey2023_Cleaned_Data_v{formatted_date}.csv'
+            default_filename = f'IVR_Cleaned_Data_v{formatted_date}.csv'
 
             # Use the default filename in the text input, allowing the user to edit it
             output_filename = st.text_input("Edit the filename for download", value=default_filename)
@@ -227,7 +227,7 @@ def run():
                 # Prepare for downloading the used phone numbers
                 # Current date for the filename specific to unique phone numbers
                 formatted_date = datetime.now().strftime("%Y%m%d")
-                default_filename_phonenum = f'IVR_Petaling_Jaya_Survey2023_Used_Phonenum_v{formatted_date}.csv'
+                default_filename_phonenum = f'IVR_Dialed_Phonenum_v{formatted_date}.csv'
                 output_filename_phonenum = st.text_input("Edit the filename for download", value=default_filename_phonenum)
 
                 # Ensure the filename ends with '.csv'
