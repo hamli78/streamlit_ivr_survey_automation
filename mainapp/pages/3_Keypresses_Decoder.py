@@ -122,6 +122,10 @@ def classify_income(income):
         return 'T20'
     
 def run():
+    # Initialize a list in session state to hold display content
+    if 'display_content' not in st.session_state:
+        st.session_state['display_content'] = []
+    
     # Initialize 'output_filename' in session state if it's not already present
     if 'output_filename' not in st.session_state:
         formatted_date = datetime.now().strftime("%Y%m%d")
@@ -254,39 +258,34 @@ def run():
                     st.write(renamed_data[col].value_counts(normalize=True))
                     st.write("\n")
                     
-            if 'renamed_data' in st.session_state:
-                # Display value counts for each column except 'phonenum'
-                for col in st.session_state['renamed_data'].columns:
-                    if col != 'phonenum':
-                        st.write(f"Value counts for {col}:")
-                        st.write(st.session_state['renamed_data'][col].value_counts(normalize=True))
-                        st.write("\n")
+    if 'renamed_data' in st.session_state:
+        renamed_data = st.session_state['renamed_data']
+        
+        st.write("Preview of Decoded Data:")
+        st.dataframe(st.session_state['renamed_data'])
 
-                st.write("Preview of Decoded Data:")
-                st.dataframe(st.session_state['renamed_data'])
+        # Use a form for filename editing and download to prevent re-triggering the entire script
+        with st.form("edit_and_download"):
+            # Allow users to edit the filename for download within a form
+            edited_filename = st.text_input("Edit the filename for download", value=st.session_state.get('output_filename', 'default_filename.csv'))
+            
+            # Form submit button
+            submitted = st.form_submit_button("Apply Changes and Prepare Download")
 
-                # Use a form for filename editing and download to prevent re-triggering the entire script
-                with st.form("edit_and_download"):
-                    # Allow users to edit the filename for download within a form
-                    edited_filename = st.text_input("Edit the filename for download", value=st.session_state.get('output_filename', 'default_filename.csv'))
-                    
-                    # Form submit button
-                    submitted = st.form_submit_button("Apply Changes and Prepare Download")
+            if submitted:
+                # Ensure the filename ends with '.csv'
+                if edited_filename and not edited_filename.lower().endswith('.csv'):
+                    edited_filename += '.csv'
+                st.session_state['output_filename'] = edited_filename
 
-                    if submitted:
-                        # Ensure the filename ends with '.csv'
-                        if edited_filename and not edited_filename.lower().endswith('.csv'):
-                            edited_filename += '.csv'
-                        st.session_state['output_filename'] = edited_filename
-
-                        # Convert the DataFrame to CSV for download
-                        data_as_csv = st.session_state['renamed_data'].to_csv(index=False).encode('utf-8')
-                        st.download_button(
-                            label="Download Decoded Data as CSV",
-                            data=data_as_csv,
-                            file_name=st.session_state['output_filename'],
-                            mime='text/csv'
-                        )
+                # Convert the DataFrame to CSV for download
+                data_as_csv = st.session_state['renamed_data'].to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Download Decoded Data as CSV",
+                    data=data_as_csv,
+                    file_name=st.session_state['output_filename'],
+                    mime='text/csv'
+                )
 
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
