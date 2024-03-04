@@ -299,7 +299,5 @@ def run():
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
-
-
 if __name__ == "__main__":
     run()
