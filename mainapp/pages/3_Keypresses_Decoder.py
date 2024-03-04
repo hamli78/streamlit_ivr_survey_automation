@@ -247,7 +247,6 @@ def run():
             st.markdown("### Sanity check for values in each column")
             for col in renamed_data.columns:
                 if col != 'phonenum':
-                    st.write(f"Sanity check for {col}:")
                     st.write(renamed_data[col].value_counts(normalize=True))
                     st.write("\n")
                 
