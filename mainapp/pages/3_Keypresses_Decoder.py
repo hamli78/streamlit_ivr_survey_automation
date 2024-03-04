@@ -187,6 +187,9 @@ def run():
                 keypress_mappings[col] = all_mappings
 
         if st.button("Decode Keypresses"):
+            st.session_state['decoded'] = True  # Set a flag in session state
+            
+        if 'decoded' in st.session_state and st.session_state['decoded']:
             
             # Use an expander for optional debugging output
             with st.expander("Show keypress mappings"):
@@ -258,7 +261,6 @@ def run():
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
-# Step 2: Check if renamed_data exists in session state and then proceed
 if 'renamed_data_decoded' in st.session_state:
     
     # Example of retrieving and using renamed_data from session state
