@@ -257,13 +257,6 @@ def run():
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
 
-            # User input for editing the filename, tied directly to session state
-            st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input')
-            
-            formatted_date = datetime.now().strftime("%Y%m%d")
-            default_filename = f'IVR_Decoded_Data_v{formatted_date}.csv'
-            output_filename = st.text_input("Edit the filename for download", value=default_filename)
-
             # Ensure the filename ends with '.csv'
             if not output_filename.lower().endswith('.csv'):
                 output_filename += '.csv'
