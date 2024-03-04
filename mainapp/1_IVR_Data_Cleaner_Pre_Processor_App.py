@@ -237,7 +237,7 @@ def run():
                 # Convert the unique phone numbers dataframe to CSV for download
                 phonenum_data_as_csv = phonenum_combined.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="Download Used Phone Numbers as CSV",
+                    label="Download Dialed Phone Numbers as CSV",
                     data=phonenum_data_as_csv,
                     file_name=output_filename_phonenum,
                     mime='text/csv'
