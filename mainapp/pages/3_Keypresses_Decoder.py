@@ -236,11 +236,11 @@ def run():
             today = datetime.now()
             st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
             st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
-
-            # Check for null values before dropping
-            st.write(f'Before dropping: {len(renamed_data)} rows')
+            
+            # Check for null values 
+            st.markdown("### Null Values Inspection")
             renamed_data.dropna(inplace=True)
-            st.write(f'After dropping: {len(renamed_data)} rows')
+            st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
             st.write(f'Preview of Total of Null Values per Column:')
             st.write(renamed_data.isnull().sum())
 
