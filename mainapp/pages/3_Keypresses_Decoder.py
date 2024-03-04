@@ -223,8 +223,7 @@ def run():
 
             st.session_state['decoded_data'] = renamed_data  # Save updated DataFrame to session state
             
-            # Display updated DataFrame and other information...
-            
+            # Display updated DataFrame and other information
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
             
@@ -237,26 +236,26 @@ def run():
             st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
             st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
             
-            # Check for null values 
+            # Check for null values
             st.markdown("### Null Values Inspection")
             renamed_data.dropna(inplace=True)
             st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
             st.write(f'Preview of Total of Null Values per Column:')
             st.write(renamed_data.isnull().sum())
-                
+            
             st.markdown("### Sanity check for values in each column")
             for col in renamed_data.columns:
                 if col != 'phonenum':
                     st.write(renamed_data[col].value_counts(normalize=True))
                     st.write("\n")
-                
+            
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
 
             # Initialize session state for output_filename if it doesn't already exist
             if 'output_filename' not in st.session_state:
                 formatted_date = datetime.now().strftime("%Y%m%d")
-                st.session_state['output_filename'] = f'IVR_Petaling_Jaya_Survey2023_Decoded_Data_v{formatted_date}.csv'
+                st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
 
             # Function to update the filename in session state based on user input
             def update_output_filename():
