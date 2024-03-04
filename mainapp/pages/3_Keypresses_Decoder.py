@@ -257,10 +257,7 @@ def run():
             st.session_state['renamed_data'] = renamed_data
             renamed_data_decoded = renamed_data
             st.session_state['renamed_data_decoded'] = renamed_data_decoded
-    
-    else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
-
+            
     if 'renamed_data_decoded' in st.session_state:
         
         # Example of retrieving and using renamed_data from session state
@@ -287,8 +284,7 @@ def run():
             mime='text/csv'
         )
     else:
-        # This else block can help in debugging if 'renamed_data_decoded' is not set
-        st.error("No renamed data found. Please go back to the previous step and decode your data first.")
+        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
         
 if __name__ == "__main__":
     run()
