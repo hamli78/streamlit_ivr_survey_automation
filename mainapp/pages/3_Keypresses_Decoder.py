@@ -185,7 +185,24 @@ def run():
 
             if all_mappings:
                 keypress_mappings[col] = all_mappings
+        # Initialize session state for output_filename if it doesn't already exist
+        if 'output_filename' not in st.session_state:
+            formatted_date = datetime.now().strftime("%Y%m%d")
+            default_filename = f'IVR_Decoded_Data_v{formatted_date}.csv'
+            st.session_state['output_filename'] = default_filename
+        # Function to update the filename in session state based on user input
+        def update_output_filename():
+            new_filename = st.session_state.output_filename_input
+            if new_filename and not new_filename.lower().endswith('.csv'):
+                new_filename += '.csv'
+            st.session_state['output_filename'] = new_filename
 
+        # User input for editing the filename, tied directly to session state
+        st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input')
+        # Add a button to explicitly apply the filename change
+        if st.button("Apply Filename Change"):
+            update_output_filename()
+            
         if st.button("Decode Keypresses"):
             
             # Use an expander for optional debugging output
@@ -266,7 +283,8 @@ def run():
 
             # User input for editing the filename, tied directly to session state
             st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
-
+        
+        if 'decoded_data' in st.session_state:
             # Assuming renamed_data is defined elsewhere and is the data you want to download
             data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
 
