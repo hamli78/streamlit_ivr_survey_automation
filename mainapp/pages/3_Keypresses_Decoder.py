@@ -120,17 +120,9 @@ def classify_income(income):
         return 'M40'
     elif income in ['RM15,040 & above', 'RM10,961 to RM15,039']:
         return 'T20'
-# Main function to run the Streamlit app
-def run():
-    # Check for display content in session state and initialize if absent
-    if 'display_content' not in st.session_state:
-        st.session_state['display_content'] = []
     
-    # Initialize 'output_filename' in session state with formatted date
-    if 'output_filename' not in st.session_state:
-        formatted_date = datetime.now().strftime("%Y%m%d")
-        st.session_state['output_filename'] = f'IVR_Decoded_Data_{formatted_date}.csv'
-        
+def run():
+
     if 'renamed_data' in st.session_state:
         renamed_data = st.session_state['renamed_data']
         
@@ -140,52 +132,155 @@ def run():
         
         st.write("Preview of Renamed Data:")
         st.dataframe(renamed_data.head())
+
+        keypress_mappings = {}
+        drop_cols = []
+        excluded_flow_nos = {}  # Initialize here for the whole session
+
+        # Extract the relevant columns (excluding the first and last non-question columns).
+        question_columns = renamed_data.columns[1:-1]
         
-        # Process each question column for unique values and mappings
-        process_question_columns(renamed_data)
-        
-        # Optional: Insert additional data processing steps here
-        
+        with st.expander("Show Unique Values for FlowNo"):
+                for col in question_columns:
+                    if col in renamed_data.columns:  # Ensure the column exists
+                        st.write(f"Unique Values in {col} before mapping:", renamed_data[col].unique())
+                        
+        st.write("P/S : After uploading the file, You can review the Unique FlowNo above and check if got any unique FlowNo that is not in the original Script;(it might be due to the user mispressed the key), or drop questions that you don't want to include(analyze) in the DataFrame. Additionally, you can remove any FlowNo entries that don't exist in the script due to mistaken extra keypress entries made by the call center during the campaign that is not alligned with the original script.")
+           
+        for i, col in enumerate(question_columns, start=1):
+            st.subheader(f"Q{i}: {col}")
+            unique_values = renamed_data[col].unique()
+            
+            # Handle cases where values do not follow the 'key=value' format
+            def sort_key(x):
+                parts = x.split('=')
+                if len(parts) > 1 and parts[1] != '':
+                    return int(parts[1])
+                else:
+                    return float('inf')
+                
+            sorted_unique_values = sorted(unique_values, key=sort_key)
+            
+            # Checkbox to exclude entire question using question number instead of column name
+            if st.checkbox(f"Drop entire Question {i}", key=f"exclude_{col}"):
+                drop_cols.append(col)
+                continue
+                
+            all_mappings = {}
+            excluded_flow_nos[col] = []
+
+            for idx, val in enumerate(sorted_unique_values):
+                if pd.notna(val):
+                    autofill_value = simple_mappings.get(val, "")
+                    unique_key = f"{col}_{val}_{idx}"
+                    
+                    # Checkbox to decide whether to exclude this specific FlowNo value
+                    if st.checkbox(f"Drop '{val}'", key=f"exclude_{unique_key}"):
+                        excluded_flow_nos[col].append(val)
+                        continue
+                    
+                    readable_val = st.text_input(f"Rename '{val}' to:", value=autofill_value, key=unique_key)
+                    if readable_val:
+                        all_mappings[val] = readable_val
+
+            if all_mappings:
+                keypress_mappings[col] = all_mappings
+
         if st.button("Decode Keypresses"):
-            apply_mappings_and_classifications(renamed_data)
-            download_prepared_data(renamed_data)
+            
+            # Use an expander for optional debugging output
+            with st.expander("Show keypress mappings"):
+                st.write("Applying Debugging Details:", keypress_mappings)
+                
+            # Drop entire questions if needed
+            if drop_cols:
+                renamed_data.drop(columns=drop_cols, inplace=True)
+                
+            # Apply mappings and exclude specific FlowNo values
+            for col, col_mappings in keypress_mappings.items():
+                if col in renamed_data.columns:  # Ensure column exists
+                    
+                    # Debugging: Verify mappings are correct just before applying###############
+                    # st.write(f"Applying mappings for {col}: {col_mappings}")
+                    
+                    renamed_data[col] = renamed_data[col].map(col_mappings).fillna(renamed_data[col])
+                    if col in excluded_flow_nos:
+                        for val_to_exclude in excluded_flow_nos[col]:
+                            renamed_data = renamed_data[renamed_data[col] != val_to_exclude]
+                            
+            # Insert the classify_income function right before the CSV download logic
+            if 'IncomeRange' in renamed_data.columns:
+                # Classify income and store in a temporary column
+                income_group = renamed_data['IncomeRange'].apply(classify_income)
+                
+                # Find the index of 'IncomeRange' column
+                income_range_index = renamed_data.columns.get_loc('IncomeRange')
+                
+                # Insert 'IncomeGroup' column right after 'IncomeRange' column
+                renamed_data.insert(income_range_index + 1, 'IncomeGroup', income_group)
+            else:
+                st.warning("IncomeRange column not found. Please ensure your data includes this column for income classification.")
+
+            st.session_state['decoded_data'] = renamed_data  # Save updated DataFrame to session state
+            
+            # Display updated DataFrame and other information
+
+            st.write("Preview of Decoded Data:")
+            st.dataframe(renamed_data)
+            
+            # Display IVR length and shape
+            st.write(f'IVR Length: {len(renamed_data)} rows')
+            st.write(renamed_data.shape)
+
+            # Current date for reporting
+            today = datetime.now()
+            st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
+            st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
+            
+            # Check for null values 
+            st.markdown("### Null Values Inspection")
+            renamed_data.dropna(inplace=True)
+            st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
+            st.write(f'Preview of Total of Null Values per Column:')
+            st.write(renamed_data.isnull().sum())
+            
+            st.markdown("### Sanity check for values in each column")
+            for col in renamed_data.columns:
+                if col != 'phonenum':
+                    st.write(renamed_data[col].value_counts(normalize=True))
+                    st.write("\n")
+            
+            st.write("Preview of Decoded Data:")
+            st.dataframe(renamed_data)
+
+            # Initialize session state for output_filename if it doesn't already exist
+            if 'output_filename' not in st.session_state:
+                formatted_date = datetime.now().strftime("%Y%m%d")
+                st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
+
+            # Function to update the filename in session state based on user input
+            def update_output_filename():
+                if st.session_state.output_filename_input and not st.session_state.output_filename_input.lower().endswith('.csv'):
+                    st.session_state.output_filename = st.session_state.output_filename_input + '.csv'
+                else:
+                    st.session_state.output_filename = st.session_state.output_filename_input
+
+            # User input for editing the filename, tied directly to session state
+            st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
+
+            # Assuming renamed_data is defined elsewhere and is the data you want to download
+            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
+
+            # Use the session state for the filename in the download button
+            st.download_button(
+                label="Download Decoded Data as CSV",
+                data=data_as_csv,
+                file_name=st.session_state['output_filename'],
+                mime='text/csv'
+            )
+
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
-
-# Function to process question columns for unique values and mappings
-def process_question_columns(renamed_data):
-    question_columns = renamed_data.columns[1:-1]
-    for i, col in enumerate(question_columns, start=1):
-        # Process each column for unique values and potential mappings
-        process_unique_values(col, i, renamed_data)
-
-# Function to apply mappings and classifications to the data
-def apply_mappings_and_classifications(renamed_data):
-    # Implement logic to apply keypress mappings and classifications
-    # Example: Insert classify_income function logic here if applicable
-    st.write("Decoding and classification logic would be implemented here.")
-
-# Function to allow the user to download the prepared data
-def download_prepared_data(renamed_data):
-    # Use a form for filename editing and download
-    with st.form("edit_and_download"):
-        edited_filename = st.text_input("Edit the filename for download", value=st.session_state['output_filename'])
-        submitted = st.form_submit_button("Apply Changes and Prepare Download")
-        if submitted:
-            finalize_download(edited_filename, renamed_data)
-
-# Function to finalize and execute the download process
-def finalize_download(edited_filename, renamed_data):
-    if not edited_filename.lower().endswith('.csv'):
-        edited_filename += '.csv'
-    st.session_state['output_filename'] = edited_filename
-    data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
-    st.download_button("Download Decoded Data as CSV", data=data_as_csv, file_name=edited_filename, mime='text/csv')
-
-# Function to process unique values in a column - Placeholder for detailed implementation
-def process_unique_values(column, index, dataframe):
-    # Placeholder for logic to process unique values in a column
-    st.write(f"Processing unique values for column {column} would be implemented here.")
 
 if __name__ == "__main__":
     run()
