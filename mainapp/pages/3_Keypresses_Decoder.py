@@ -257,14 +257,16 @@ def run():
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
 
-            # Convert the unique phone numbers dataframe to CSV for download
-            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download Decoded Data as CSV",
-                data=data_as_csv,
-                file_name=output_filename,
-                mime='text/csv'
-            )
+            # User input for editing the filename, tied directly to session state
+            st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input')
+            
+            formatted_date = datetime.now().strftime("%Y%m%d")
+            default_filename = f'IVR_Decoded_Data_v{formatted_date}.csv'
+            output_filename = st.text_input("Edit the filename for download", value=default_filename)
+
+            # Ensure the filename ends with '.csv'
+            if not output_filename.lower().endswith('.csv'):
+                output_filename += '.csv'
 
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
