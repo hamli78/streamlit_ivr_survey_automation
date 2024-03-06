@@ -1,4 +1,6 @@
 import re
+import streamlit as st
+import json
 
 def parse_text_to_json(text_content):
     """
@@ -52,4 +54,23 @@ def classify_income(income):
         return 'M40'
     elif income in ['RM15,040 & above', 'RM10,961 to RM15,039']:
         return 'T20'
-    
+import json
+
+def process_file_content(uploaded_file):
+    """Process the content of the uploaded file."""
+    try:
+        if uploaded_file and uploaded_file.type == "application/json":
+            # Handle JSON file
+            flow_no_mappings = json.loads(uploaded_file.getvalue().decode("utf-8"))
+        else:
+            # Handle plain text file
+            flow_no_mappings = parse_text_to_json(uploaded_file.getvalue().decode("utf-8"))
+        return flow_no_mappings, "Questions and answers parsed successfully.✨", None
+    except Exception as e:
+        return None, None, f"Error processing file: {e}"
+
+def flatten_json_structure(flow_no_mappings):
+    """Flatten the JSON structure to simplify the mapping access."""
+    if not flow_no_mappings:
+        return {}
+    return {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
