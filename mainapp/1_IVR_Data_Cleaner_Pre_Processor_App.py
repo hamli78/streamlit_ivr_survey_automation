@@ -1,36 +1,17 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from modules.security_utils import check_password  
+from modules.security_utils import check_password
+from modules.data_cleaner_utils_page1 import process_file
 from PIL import Image
 import numpy as np
 
-# # Hide streamlit header and footer
-# hide_st_style = """
-#             <style>
-#             #MainMenu {visibility: hidden;}
-#             footer {visibility: hidden;}
-#             header {visibility: hidden;}
-#             </style>
-#             """
-
-# # configure the default settings of the page.
-# icon = Image.open('./images/invoke_logo.png')
-# st.set_page_config(page_icon=icon,page_title='IVR Data Cleaner 🧮',
-#     layout="wide",
-#     page_icon=icon,
-#     initial_sidebar_state="expanded")
-
-# st.markdown(hide_st_style, unsafe_allow_html=True)
-
-# Configure the default settings of the page.
 st.set_page_config(
     page_title='IVR Data Cleaner 🧮',
     layout="wide",
     page_icon=Image.open('./images/invoke_logo.png'),
     initial_sidebar_state="expanded",
 )
-
 
 def set_dark_mode_css():
     # Define CSS for dark mode with broader coverage
@@ -55,31 +36,10 @@ def set_dark_mode_css():
 # Apply the dark mode CSS
 set_dark_mode_css()
 
-
-def process_file(uploaded_file):
-    df = pd.read_csv(uploaded_file, skiprows=1, names=range(100), engine='python')
-    df.dropna(axis='columns', how='all', inplace=True)
-    df.columns = df.iloc[0]
-    df_phonenum = df[['PhoneNo']]
-    df_response = df.loc[:, 'UserKeyPress':]
-    df_results = pd.concat([df_phonenum, df_response], axis='columns')
-    
-    total_calls = len(df_results)
-    phonenum_recycle = df_results.dropna(subset=['UserKeyPress'])
-    phonenum_list = phonenum_recycle[['PhoneNo']]
-    
-    df_complete = df_results.dropna(axis='index')
-    total_pickup = len(df_complete)
-
-    # Additional processing steps
-    df_complete.columns = np.arange(len(df_complete.columns))
-    df_complete['Set'] = 'IVR'
-    df_complete = df_complete.loc[:, :'Set']
-    df_complete = df_complete.loc[(df_complete.iloc[:, 2].str.len() == 10)]
-
-    return df_complete, phonenum_list, total_calls, total_pickup
-
 def run():
+    """
+    Processes the metrics functions
+    """
     # Check if data is already processed and available in session state
     if 'processed' not in st.session_state:
         st.session_state['processed'] = False
@@ -110,7 +70,7 @@ def run():
                 st.session_state['total_pickups'] = 0
                 st.session_state['file_count'] = 0
 
-                # Process files and update session state
+                # Process files and update session state ####### We take process file from module
                 for uploaded_file in uploaded_files:
                     df_complete, phonenum_list, total_calls, total_pickup = process_file(uploaded_file)
                     st.session_state['all_data'].append(df_complete)

@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import json
 import re
+from modules.questionnaire_utils_page2 import parse_questions_and_answers, parse_text_to_json, rename_columns
 
 # Configure the default settings of the page.
 icon = Image.open('./images/invoke_logo.png')
@@ -33,43 +34,6 @@ def set_dark_mode_css():
     st.markdown(dark_mode_css, unsafe_allow_html=True)
 
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
-
-def rename_columns(df, new_column_names):
-    # Rename dataframe columns based on user input.
-    mapping = {old: new for old, new in zip(df.columns, new_column_names) if new}
-    return df.rename(columns=mapping, inplace=False)
-
-def parse_questions_and_answers(json_data):
-    # Parse questions and answers from JSON data.
-    questions_and_answers = {}
-    for q_key, q_value in json_data.items():
-        question_text = q_value['question']
-        answers = [answer for _, answer in q_value['answers'].items()]
-        questions_and_answers[q_key] = {'question': question_text, 'answers': answers}
-    return questions_and_answers
-
-def parse_text_to_json(text_content):
-    # Convert formatted text content into JSON-like structure.
-    data = {}
-    question_re = re.compile(r'^(\d+)\.\s+(.*)')
-    answer_re = re.compile(r'^\s+-\s+(.*)')
-    current_question = ""
-
-    for line in text_content.splitlines():
-        question_match = question_re.match(line)
-        answer_match = answer_re.match(line)
-
-        if question_match:
-            q_number, q_text = question_match.groups()
-            current_question = f"Q{q_number}"
-            data[current_question] = {"question": q_text, "answers": {}}
-        elif answer_match and current_question:
-            answer_text = answer_match.groups()[0]
-            flow_no = len(data[current_question]["answers"]) + 1
-            flow_no_key = f"FlowNo_{int(q_number)+1}={flow_no}"
-            data[current_question]["answers"][flow_no_key] = answer_text
-
-    return data
 
 def run1():
     st.title('Questionnaire Definer🎡')
