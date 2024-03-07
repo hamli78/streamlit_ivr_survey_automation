@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from modules_backend.security_utils import check_password
-from modules_backend.data_cleaner_utils_page1 import process_file
+from modules.security_utils import check_password
+from modules.data_cleaner_utils_page1 import process_file
 from PIL import Image
 import numpy as np
+
 
 st.set_page_config(
     page_title='IVR Data Cleaner 🧮',
