@@ -11,5 +11,10 @@ app = FastAPI()
 
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+async def get_process_file(number:int):
+    return process_file
+
+@app.get('/burgers')
+async def read_burgers():
+    burgers = await process_file(2)
+    return burgers

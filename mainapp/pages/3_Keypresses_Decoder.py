@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import re  # For regex operations
 import json
-from modules_backend.keypress_decoder_utils_page3 import parse_text_to_json, custom_sort, classify_income
+from modules.keypress_decoder_utils_page3 import parse_text_to_json, custom_sort, classify_income
 
 
 # Configure the default settings of the page.

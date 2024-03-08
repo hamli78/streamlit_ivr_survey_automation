@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 import json
 import re
-from modules_backend.questionnaire_utils_page2 import parse_questions_and_answers, parse_text_to_json, rename_columns
+from modules.questionnaire_utils_page2 import parse_questions_and_answers, parse_text_to_json, rename_columns
 
 # Configure the default settings of the page.
 icon = Image.open('./images/invoke_logo.png')
