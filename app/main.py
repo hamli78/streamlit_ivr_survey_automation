@@ -10,11 +10,7 @@ from fastapi import FastAPI
 app = FastAPI()
 
 
-@app.get("/")
-async def get_process_file(number:int):
-    return process_file
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    return {"item_id": 3}
 
-@app.get('/burgers')
-async def read_burgers():
-    burgers = await process_file(2)
-    return burgers
