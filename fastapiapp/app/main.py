@@ -1,29 +1,65 @@
-# #
-from fastapi import FastAPI, UploadFile, Depends, HTTPException
+# # #
+from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from typing import List
 from sqlalchemy.orm import Session
-from streamlit_ivr_survey_automation.fastapiapp.app import schemas
-from modules.data_cleaner_utils_page1 import process_file
-from streamlit_ivr_survey_automation.fastapiapp.app import crud
-from streamlit_ivr_survey_automation.fastapiapp.app import dependencies
+from app.modules import schemas, crud, dependencies  # Adjusted import paths
+from app.modules.data_cleaner_utils_page1 import process_file
 
 app = FastAPI()
 
-@app.post("/process-file/", response_model=List[schemas.PhoneNumber])
-async def create_upload_file(uploaded_file: UploadFile, db: Session = Depends(dependencies.get_db)):
-    # Your file processing logic here
-    # Assume process_file returns a list of phone numbers in the desired format
-    phonenum_list = await process_file(uploaded_file)
+@app.post("/process-file/", response_model=List[schemas.PhoneNumberResponse])  # Adjust response model
+async def create_upload_file(uploaded_file: UploadFile = File(...), db: Session = Depends(dependencies.get_db)):
+    # Process the uploaded file and extract phone numbers
     try:
-        for item in phonenum_list:
-            # Assuming create_phone_number returns an instance of models.PhoneNumber
-            created_phone_number = crud.create_phone_number(db=db, phone_number=item)
-            # Do something with created_phone_number if needed, e.g., transform it into a response model
-        db.commit()
+        processed_data = await process_file(uploaded_file.file)
     except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    return phonenum_list
+        raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
+    
+    # Attempt to create phone numbers in the database
+    created_phone_numbers = []
+    for item in processed_data['phonenum_list']:  # Assuming this is a list of dict or similar
+        phone_number = item['phone_number']  # Adjust based on your actual data structure
+        try:
+            created_phone_number = crud.create_phone_number(db=db, phone_number=phone_number)
+            created_phone_numbers.append(created_phone_number)
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail=f"Failed to create phone number: {str(e)}")
+    
+    # Commit database changes if all phone numbers are created successfully
+    db.commit()
+
+    # Convert created phone numbers to Pydantic models (schemas) before returning
+    return [schemas.PhoneNumberResponse.from_orm(phone) for phone in created_phone_numbers]
+
+
+
+
+# from fastapi import FastAPI, UploadFile, Depends, HTTPException
+# from typing import List
+# from sqlalchemy.orm import Session
+# from modules import schemas
+# from modules.data_cleaner_utils_page1 import process_file
+# from modules import crud
+# from modules import dependencies
+
+# app = FastAPI()
+
+# @app.post("/process-file/", response_model=List[schemas.PhoneNumber])
+# async def create_upload_file(uploaded_file: UploadFile, db: Session = Depends(dependencies.get_db)):
+#     # Your file processing logic here
+#     # Assume process_file returns a list of phone numbers in the desired format
+#     phonenum_list = await process_file(uploaded_file)
+#     try:
+#         for item in phonenum_list:
+#             # Assuming create_phone_number returns an instance of models.PhoneNumber
+#             created_phone_number = crud.create_phone_number(db=db, phone_number=item)
+#             # Do something with created_phone_number if needed, e.g., transform it into a response model
+#         db.commit()
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=400, detail=str(e))
+#     return phonenum_list
 
 
 # from fastapi import FastAPI, File, UploadFile, Depends

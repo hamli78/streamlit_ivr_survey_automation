@@ -6,7 +6,7 @@ venv_fahmi/
 .mainapp/pages_frontend/__pycache__
 .mainapp/__pycache__
 __pycache__/
-
+__init__/
 # password
 .streamlit/secrets.toml
 

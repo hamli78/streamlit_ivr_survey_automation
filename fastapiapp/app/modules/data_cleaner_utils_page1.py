@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import asyncio
 
 async def process_file(uploaded_file):
     """
