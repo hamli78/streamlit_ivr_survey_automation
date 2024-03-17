@@ -1,0 +1,13 @@
+; your_project/
+; │
+; └───app/
+; │   │   main.py
+; │   │   models.py
+; │   │   schemas.py
+; │   │   crud.py
+; │   │   dependencies.py
+; │   │   database.py  # Defines database session and engine
+; │   
+; └───requirements.txt
+
+; basic structure
