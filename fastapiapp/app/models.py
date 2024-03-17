@@ -1,12 +1,11 @@
 from sqlalchemy import Column, Integer, String
-from .database import Base
+from database import Base
 
 class PhoneNumber(Base):
-    __tablename__ = 'phonenumbers'
-    id = Column(Integer, primary_key=True, index=True)
-    phone_number = Column(String, unique=True, index=True)
-    user_key_press = Column(String)
+    __tablename__ = "phonenumbers"
 
+    id = Column(Integer, primary_key=True, index=True)
+    number = Column(String, unique=True, index=True)
 
 
 

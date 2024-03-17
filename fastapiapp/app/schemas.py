@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 
 class PhoneNumberBase(BaseModel):
-    phone_number: str
+    number: str
 
 class PhoneNumberCreate(PhoneNumberBase):
-    user_key_press: str
+    pass
 
 class PhoneNumber(PhoneNumberBase):
     id: int

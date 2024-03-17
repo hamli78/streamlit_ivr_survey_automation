@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
+import asyncio
 
-def process_file(uploaded_file):
+async def process_file(uploaded_file):
     """
     Process the uploaded CSV file to extract and transform phone number data
     and user response data for analysis.

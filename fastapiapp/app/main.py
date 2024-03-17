@@ -2,7 +2,7 @@
 from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from typing import List
 from sqlalchemy.orm import Session
-from streamlit_ivr_survey_automation.fastapiapp.app import models, schemas
+from streamlit_ivr_survey_automation.fastapiapp.app import schemas
 from modules.data_cleaner_utils_page1 import process_file
 from streamlit_ivr_survey_automation.fastapiapp.app import crud
 from streamlit_ivr_survey_automation.fastapiapp.app import dependencies
