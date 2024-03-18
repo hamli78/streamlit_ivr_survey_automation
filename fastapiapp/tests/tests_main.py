@@ -12,6 +12,6 @@ def process_file():
     files = {
         'uploaded_file': ('filename.csv', open('path_to_your_file.csv', 'rb'), 'text/csv')
     }
-    response = client.post("/process-file/", files=files)
+    response = client.post("/process-file", files=files)
     assert response.status_code == 200
     # Add more assertions here based on the expected response structure

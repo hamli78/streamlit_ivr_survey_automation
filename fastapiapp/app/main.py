@@ -7,7 +7,7 @@ from app.modules.data_cleaner_utils_page1 import process_file
 
 app = FastAPI()
 
-@app.post("/process-file/", response_model=List[schemas.PhoneNumberResponse])  # Adjust response model
+@app.post("/process-file", response_model=List[schemas.PhoneNumberResponse])  # Adjust response model
 async def create_upload_file(uploaded_file: UploadFile = File(...), db: Session = Depends(dependencies.get_db)):
     # Process the uploaded file and extract phone numbers
     try:

@@ -56,6 +56,35 @@ async def process_file(uploaded_file):
         "total_pickup": total_pickup
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # return df_complete, phonenum_list, total_calls, total_pickup
 
 
