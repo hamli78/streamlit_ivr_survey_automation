@@ -1,6 +1,12 @@
 # Remove Virtual Environment
 venv_fahmi/
 
+# Remove the Pycache
+.mainapp/modules_backend/__pycache__
+.mainapp/pages_frontend/__pycache__
+.mainapp/__pycache__
+__pycache__/
+__init__/
 # password
 .streamlit/secrets.toml
 
