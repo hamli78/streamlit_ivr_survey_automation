@@ -15,5 +15,3 @@ def process_file():
     response = client.post("/process-file", files=files)
     assert response.status_code == 200
     # Add more assertions here based on the expected response structure
-#
-#
