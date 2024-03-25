@@ -4,8 +4,6 @@ A web application  to clean IVR Data for Analytics Purposes.
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ivr-cleaning-automation.streamlit.app/)
 
-Based on your project's structure and scripts, I'll help you create a comprehensive README for your project documentation. This README will cover the main aspects of your project, including an overview, setup instructions, usage, and contributions. Given the complex nature of your project, which involves Streamlit apps for data processing and a FastAPI application, the documentation will be detailed to ensure users can easily navigate and understand your project's purpose and functionality.
-
 ---
 
 ## Overview
