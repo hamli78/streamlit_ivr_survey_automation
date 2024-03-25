@@ -1,36 +1,62 @@
 # # #
-from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from typing import List
-from sqlalchemy.orm import Session
-from app.modules import schemas, crud, dependencies  # Adjusted import paths
-from app.modules.data_cleaner_utils_page1 import process_file
+from modules.data_cleaner_utils_page1 import process_file  # Adjust import based on your actual file processing function
+from modules import schemas  # Ensure this import matches your project structure
 
 app = FastAPI()
 
-@app.post("/process-file", response_model=List[schemas.PhoneNumberResponse])  # Adjust response model
-async def create_upload_file(uploaded_file: UploadFile = File(...), db: Session = Depends(dependencies.get_db)):
+@app.post("/process-file", response_model=List[schemas.PhoneNumberResponse])
+async def create_upload_file(uploaded_file: UploadFile = File(...)):
     # Process the uploaded file and extract phone numbers
     try:
         processed_data = await process_file(uploaded_file.file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
     
-    # Attempt to create phone numbers in the database
-    created_phone_numbers = []
-    for item in processed_data['phonenum_list']:  # Assuming this is a list of dict or similar
-        phone_number = item['phone_number']  # Adjust based on your actual data structure
-        try:
-            created_phone_number = crud.create_phone_number(db=db, phone_number=phone_number)
-            created_phone_numbers.append(created_phone_number)
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(status_code=400, detail=f"Failed to create phone number: {str(e)}")
-    
-    # Commit database changes if all phone numbers are created successfully
-    db.commit()
+    # Assuming processed_data['phonenum_list'] is a list of phone numbers
+    phone_numbers = processed_data['phonenum_list']
 
-    # Convert created phone numbers to Pydantic models (schemas) before returning
-    return [schemas.PhoneNumberResponse.from_orm(phone) for phone in created_phone_numbers]
+    # Convert extracted phone numbers to Pydantic models before returning
+    phone_number_responses = [schemas.PhoneNumberResponse(phone_number=phone) for phone in phone_numbers]
+
+    return phone_number_responses
+
+
+
+# from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+# from typing import List
+# from sqlalchemy.orm import Session
+# from app.modules import schemas
+# from app.modules.data_cleaner_utils_page1 import process_file
+
+# app = FastAPI()
+
+# @app.post("/process-file", response_model=List[schemas.PhoneNumberResponse])  # Adjust response model
+# async def create_upload_file(uploaded_file: UploadFile = File(...), db: Session = Depends(dependencies.get_db)):
+#     # Process the uploaded file and extract phone numbers
+#     try:
+#         processed_data = await process_file(uploaded_file.file)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
+    
+#     # Attempt to create phone numbers in the database
+#     created_phone_numbers = []
+#     for item in processed_data['phonenum_list']:  # Assuming this is a list of dict or similar
+#         phone_number = item['phone_number']  # Adjust based on your actual data structure
+#         try:
+#             created_phone_number = crud.create_phone_number(db=db, phone_number=phone_number)
+#             created_phone_numbers.append(created_phone_number)
+#         except Exception as e:
+#             db.rollback()
+#             raise HTTPException(status_code=400, detail=f"Failed to create phone number: {str(e)}")
+    
+#     # Commit database changes if all phone numbers are created successfully
+#     db.commit()
+
+#     # Convert created phone numbers to Pydantic models (schemas) before returning
+#     return [schemas.PhoneNumberResponse.from_orm(phone) for phone in created_phone_numbers]
 
 
 

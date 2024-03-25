@@ -1,6 +1,12 @@
 # Remove Virtual Environment
 venv_fahmi/
 
+# Ignore Python bytecode directories
+__pycache__/
+
+# Ignore all .pyc files
+*.pyc
+
 # Remove the Pycache
 __pycache__/
 __init__/
