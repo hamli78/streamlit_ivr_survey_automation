@@ -1,4 +1,4 @@
-# Project Title: Streamlit Survey Automation
+# Streamlit Survey Automation
 
 A web application  to clean IVR Data for Analytics Purposes.
 
