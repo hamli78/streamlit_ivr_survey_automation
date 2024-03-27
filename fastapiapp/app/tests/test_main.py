@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from io import BytesIO
-from fastapiapp import app
+from app import main
 import json
 
 client = TestClient(app)
