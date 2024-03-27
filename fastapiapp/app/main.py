@@ -1,27 +1,121 @@
 # # #
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from modules.data_cleaner_utils_page1 import (
+    process_file
+)
+from modules.questionnaire_utils_page2 import (parse_questions_and_answers,
+    rename_columns
+)
+from modules.keypress_decoder_utils_page3 import (parse_text_to_json , custom_sort , classify_income , process_file_content, flatten_json_structure)
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from typing import List
-from modules.data_cleaner_utils_page1 import process_file  # Adjust import based on your actual file processing function
-from streamlit_ivr_survey_automation.fastapiapp.app import schemas  # Ensure this import matches your project structure
+import pandas as pd
+import json
 
 app = FastAPI()
 
-@app.post("/process-file", response_model=List[schemas.PhoneNumberResponse])
-async def create_upload_file(uploaded_file: UploadFile = File(...)):
-    # Process the uploaded file and extract phone numbers
+@app.post("/utilities/")
+async def utilities_endpoint(
+    action: str = Form(...),
+    uploaded_file: UploadFile = File(None),
+    text_content: str = Form(None),
+    json_data: str = Form(None),
+    new_column_names: str = Form(None),
+    income: str = Form(None),  # For classify_income
+    sort_keys: str = Form(None)  # New for custom_sort
+):  
     try:
-        processed_data = await process_file(uploaded_file.file)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
+        if action == "process_file":
+            if not uploaded_file:
+                raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
+            df_complete, phonenum_list, total_calls, total_pickup = process_file(uploaded_file.file)
+            return {
+                "df_complete": df_complete.to_json(orient="records"),
+                "phonenum_list": phonenum_list.to_json(orient="records"),
+                "total_calls": total_calls,
+                "total_pickup": total_pickup
+            }
+            
+        # Handling file processing
+        if action == "process_file_content":
+            if not uploaded_file:
+                raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
+            processed_data, message, error = await process_file_content(uploaded_file)
+            if error:
+                raise HTTPException(status_code=500, detail=error)
+            return {"processed_data": processed_data, "message": message}
+        
+        elif action == "parse_questions_and_answers":
+            if not json_data:
+                raise HTTPException(status_code=400, detail="JSON data is required for this action.")
+            parsed_data = parse_questions_and_answers(json.loads(json_data))
+            return parsed_data
+        elif action == "parse_text_to_json":
+            if not text_content:
+                raise HTTPException(status_code=400, detail="Text content is required for this action.")
+            json_data = parse_text_to_json(text_content)
+            return json_data
+        elif action == "rename_columns":
+            if not json_data or not new_column_names:
+                raise HTTPException(status_code=400, detail="JSON data and new column names are required for this action.")
+            df = pd.DataFrame(json.loads(json_data))
+            updated_df = rename_columns(df, json.loads(new_column_names))
+            return updated_df.to_json(orient="records")
+        elif action == "flatten_json_structure":
+            if not json_data:
+                raise HTTPException(status_code=400, detail="JSON data is required for this action.")
+            flat_data = flatten_json_structure(json.loads(json_data))
+            return flat_data
+        
+        elif action == "classify_income":
+                    if not income:
+                        raise HTTPException(status_code=400, detail="Income data is required for this action.")
+                    income_category = classify_income(income)
+                    return {"income_category": income_category}
+                
+        # New action for custom_sort
+        elif action == "custom_sort":
+            if not sort_keys:
+                raise HTTPException(status_code=400, detail="Sort keys are required for this action.")
+            # Assuming sort_keys is a JSON string representing a list of keys
+            keys = json.loads(sort_keys)
+            if not isinstance(keys, list):
+                raise HTTPException(status_code=400, detail="Sort keys must be a list.")
+            sorted_keys = sorted(keys, key=lambda x: custom_sort(x))
+            return {"sorted_keys": sorted_keys}
+
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported action.")
+
     
-    # Assuming processed_data['phonenum_list'] is a list of phone numbers
-    phone_numbers = processed_data['phonenum_list']
+    except Exception as e:
+        # General error handling
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+    
+    
+# from fastapi import FastAPI, File, UploadFile, HTTPException
+# from typing import List
+# from modules.data_cleaner_utils_page1 import process_file  # Adjust import based on your actual file processing function
+# from streamlit_ivr_survey_automation.fastapiapp.app import schemas  # Ensure this import matches your project structure
 
-    # Convert extracted phone numbers to Pydantic models before returning
-    phone_number_responses = [schemas.PhoneNumberResponse(phone_number=phone) for phone in phone_numbers]
+# app = FastAPI()
 
-    return phone_number_responses
+# @app.post("/process-file", response_model=List[schemas.PhoneNumberResponse])
+# async def create_upload_file(uploaded_file: UploadFile = File(...)):
+#     # Process the uploaded file and extract phone numbers
+#     try:
+#         processed_data = await process_file(uploaded_file.file)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
+    
+#     # Assuming processed_data['phonenum_list'] is a list of phone numbers
+#     phone_numbers = processed_data['phonenum_list']
+
+#     # Convert extracted phone numbers to Pydantic models before returning
+#     phone_number_responses = [schemas.PhoneNumberResponse(phone_number=phone) for phone in phone_numbers]
+
+#     return phone_number_responses
 
 
 

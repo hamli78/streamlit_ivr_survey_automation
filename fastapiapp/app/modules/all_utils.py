@@ -1,3 +1,5 @@
+# I move this to main.py because this is basically main fastapi
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from modules.data_cleaner_utils_page1 import (
     process_file
