@@ -3,7 +3,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from typing import List
 from modules.data_cleaner_utils_page1 import process_file  # Adjust import based on your actual file processing function
-from modules import schemas  # Ensure this import matches your project structure
+from streamlit_ivr_survey_automation.fastapiapp.app import schemas  # Ensure this import matches your project structure
 
 app = FastAPI()
 
