@@ -1,10 +1,13 @@
 # Remove Virtual Environment
 venv_fahmi/
 
+# Ignore Python bytecode directories
+__pycache__/
+
+# Ignore all .pyc files
+*.pyc
+
 # Remove the Pycache
-.mainapp/modules_backend/__pycache__
-.mainapp/pages_frontend/__pycache__
-.mainapp/__pycache__
 __pycache__/
 __init__/
 # password
