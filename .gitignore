@@ -4,6 +4,10 @@ venv_fahmi/
 # Ignore Python bytecode directories
 __pycache__/
 
+
+__pycache__/
+*.pyc
+
 # Ignore all .pyc files
 *.pyc
 
