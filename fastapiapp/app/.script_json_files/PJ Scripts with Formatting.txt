@@ -1,0 +1,57 @@
+1. Did you vote in the Petaling Jaya Parliament?
+   - Yes
+   - No
+
+2. Do you agree with the cancellation of the PJD Link?
+   - Yes
+   - No
+   - Unsure
+   - Does not mind
+
+3. Even though the PJD Link project has been cancelled, do you think it will still be implemented in the future?
+   - Yes
+   - No
+   - Unsure
+
+4. Do you agree with the use of nuclear energy in Malaysia to achieve a net zero carbon target?
+   - Yes
+   - No
+   - Unsure
+
+5. Among the following parties, which one do you feel most positive about?
+   - PN
+   - BN
+   - About the same
+
+6. When was the last time you heard or saw news about your Member of Parliament or their machinery?
+   - This week
+   - This month
+   - Last month
+   - More than a month
+   - Never heard or seen
+
+7. In your opinion, what is the most important role of a Member of Parliament?
+   - To be active in the local community
+   - To bring development and investment to the local area
+   - To follow and support their party's directions
+   - To influence government policies
+   - Others
+
+8. AgeGroup
+   - 18-24 (Gen Z)
+   - 25-40 (Millennial)
+   - 41-56 (Gen X)
+   - 57+ (Baby Boomers)
+
+9. Ethnicity
+   - Malay
+   - Chinese
+   - Indian
+   - Others
+
+10. Gender
+    - Male
+    - Female
+
+11. IncomeRange
+    
