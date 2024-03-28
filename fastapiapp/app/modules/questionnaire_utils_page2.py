@@ -1,6 +1,6 @@
 import re
 
-async def parse_questions_and_answers(json_data):
+def parse_questions_and_answers(json_data):
             """
             Parses questions and their respective answers from a JSON data structure.
 
@@ -17,7 +17,7 @@ async def parse_questions_and_answers(json_data):
                 questions_and_answers[q_key] = {'question': question_text, 'answers': answers}
             return questions_and_answers
 
-async def parse_text_to_json(text_content):
+def parse_text_to_json(text_content):
             """
             Converts structured text content into a JSON-like dictionary, parsing questions and their answers.
 
@@ -48,7 +48,7 @@ async def parse_text_to_json(text_content):
 
             return data
 
-async def rename_columns(df, new_column_names):
+def rename_columns(df, new_column_names):
             """
             Renames dataframe columns based on a list of new column names.
             

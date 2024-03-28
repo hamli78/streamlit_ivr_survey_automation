@@ -1,23 +1,27 @@
 from fastapi.testclient import TestClient
 from io import BytesIO
-from modules.data_cleaner_utils_page1 import process_file
-from modules.questionnaire_utils_page2 import parse_questions_and_answers, rename_columns
-from modules.keypress_decoder_utils_page3 import parse_text_to_json, custom_sort, classify_income, process_file_content, flatten_json_structure
-from streamlit_ivr_survey_automation.fastapiapp.main import app
+from main import app
 import json
 
 client = TestClient(app)
 
-# Sample test for `process_file_content` - Adjust as needed for actual implementation
 def test_process_file():
-    with open("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\csv_files\Broadcast_List_Report_for_PETALING JAYA MANDARIN EVENING.csv", "rb") as file:
-        response = client.post(
-            "/utilities/",
+    with open("C:\\Users\\User\\Desktop\\Invoke Project\\Invoke_Streamlit_Survey\\.csv_files\\Broadcast_List_Report_for_PETALING JAYA MANDARIN EVENING.csv", "rb") as file:
+        response = client.post("/utilities/",
             data={"action": "process_file"},
             files={"uploaded_file": file}
         )
+    assert response.status_code != 404
+    assert response.status_code == 500
     assert response.status_code == 200
-    # Add specific assertions based on expected response structure
+    json_response = response.json()
+    assert "df_complete" in json_response
+    assert "phonenum_list" in json_response
+    assert "total_calls" in json_response
+    assert "total_pickup" in json_response
+    # Example: Check if 'df_complete' and 'phonenum_list' are not empty
+    assert json.loads(json_response["df_complete"])  # Converts string representation of list to list
+    assert json.loads(json_response["phonenum_list"])
 
 def test_parse_questions_and_answers():
     sample_json_data = '{"question1": {"question": "What is FastAPI?", "answers": {"1": "A web framework"}}}'
@@ -101,7 +105,7 @@ def test_process_file_content_with_text():
     response = client.post(
         "/utilities/",
         data={"action": "process_file_content"},
-        files={"uploaded_file": ("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\script_json_files\PJ Scripts with Formatting.txt", file_content, "text/plain")}
+        files={"uploaded_file": ("C:\\Users\\User\\Desktop\\Invoke Project\\Invoke_Streamlit_Survey\\.script_json_files\\PJ Scripts with Formatting.txt", file_content, "text/plain")}
     )
     assert response.status_code == 200
     # Add assertions based on expected behavior of process_file_content with text input
@@ -112,7 +116,7 @@ def test_process_file_content_with_json():
     response = client.post(
         "/utilities/",
         data={"action": "process_file_content"},
-        files={"uploaded_file": ("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\script_json_files\PJ Script JSON Format.json", BytesIO(json_content.encode()), "application/json")}
+        files={"uploaded_file": ("C:\\Users\\User\\Desktop\\Invoke Project\\Invoke_Streamlit_Survey\\.script_json_files\\PJ Script JSON Format.json", BytesIO(json_content.encode()), "application/json")}
     )
     assert response.status_code == 200
     # Add assertions based on expected behavior of process_file_content with JSON input
