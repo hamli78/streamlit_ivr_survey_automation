@@ -11,7 +11,7 @@ client = TestClient(app)
 
 # Sample test for `process_file_content` - Adjust as needed for actual implementation
 def test_process_file():
-    with open("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\files\Broadcast_List_Report_for_PETALING JAYA MANDARIN EVENING.csv", "rb") as file:
+    with open("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\csv_files\Broadcast_List_Report_for_PETALING JAYA MANDARIN EVENING.csv", "rb") as file:
         response = client.post(
             "/utilities/",
             data={"action": "process_file"},
@@ -102,7 +102,7 @@ def test_process_file_content_with_text():
     response = client.post(
         "/utilities/",
         data={"action": "process_file_content"},
-        files={"uploaded_file": ("sample.txt", file_content, "text/plain")}
+        files={"uploaded_file": ("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\script_json_files\PJ Scripts with Formatting.txt", file_content, "text/plain")}
     )
     assert response.status_code == 200
     # Add assertions based on expected behavior of process_file_content with text input
@@ -113,7 +113,7 @@ def test_process_file_content_with_json():
     response = client.post(
         "/utilities/",
         data={"action": "process_file_content"},
-        files={"uploaded_file": ("sample.json", BytesIO(json_content.encode()), "application/json")}
+        files={"uploaded_file": ("C:\Users\User\Desktop\Invoke Project\Invoke_Streamlit_Survey\streamlit_ivr_survey_automation\fastapiapp\app\script_json_files\PJ Script JSON Format.json", BytesIO(json_content.encode()), "application/json")}
     )
     assert response.status_code == 200
     # Add assertions based on expected behavior of process_file_content with JSON input
