@@ -131,3 +131,17 @@ __init__/
 .csv_files/Broadcast_List_Report_for_PETALING JAYA MANDARIN EVNG PT2.csv
 .script_json_files/PJ Script JSON Format.json
 .script_json_files/PJ Scripts with Formatting.txt
+
+# Newly added patterns to ignore
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Temporary directory
+temp/
+
+# VSCode settings
+.vscode/settings.json
