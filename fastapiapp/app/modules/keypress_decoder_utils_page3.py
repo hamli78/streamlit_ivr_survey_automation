@@ -109,7 +109,7 @@ def flatten_json_structure(flow_no_mappings):
             Flattens the JSON structure obtained from parsing survey questions and answers to simplify access to mappings.
 
             Parameters:
-            - flow_no_mappings (dict): A dictionary representation of survey questions and answers.
+            - flow_no_mappings (dict): A dictionary representation of survey questions and answers..
 
             Returns:
             - dict: A flattened dictionary where each key is a "FlowNo" mapping and its value is the corresponding answer text.
