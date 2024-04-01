@@ -6,24 +6,23 @@ import pandas as pd
 import json
 import logging
 import requests
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+
+import pandas as pd
+import json
 
 app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"Hello,this is Fahmi Zainal's endpoint for the project's title:": "Integration of FastAPI for a Unified Web Application from Streamlit and Shiny Web App"}
-
-@app.post("/utilities/") 
-async def utilities_endpoint(
-    request: Request,
+@app.post("/utilities/")
+def utilities_endpoint(
     action: str = Form(...),
     uploaded_file: UploadFile = File(None),
     text_content: str = Form(None),
     json_data: str = Form(None),
     new_column_names: str = Form(None),
-    income: str = Form(None),
-    sort_keys: str = Form(None),
-):
+    income: str = Form(None),  # For classify_income
+    sort_keys: str = Form(None)  # New for custom_sort
+):  
     try:
         if action == "process_file":
             if not uploaded_file:
@@ -35,8 +34,9 @@ async def utilities_endpoint(
                 "total_calls": total_calls,
                 "total_pickup": total_pickup
             }
-
-        elif action == "process_file_content":
+            
+        # Handling file processing
+        if action == "process_file_content":
             if not uploaded_file:
                 raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
             processed_data, message, error = process_file_content(uploaded_file)
@@ -49,35 +49,34 @@ async def utilities_endpoint(
                 raise HTTPException(status_code=400, detail="JSON data is required for this action.")
             parsed_data = parse_questions_and_answers(json.loads(json_data))
             return parsed_data
-
         elif action == "parse_text_to_json":
             if not text_content:
                 raise HTTPException(status_code=400, detail="Text content is required for this action.")
             json_data = parse_text_to_json(text_content)
             return json_data
-
         elif action == "rename_columns":
             if not json_data or not new_column_names:
                 raise HTTPException(status_code=400, detail="JSON data and new column names are required for this action.")
             df = pd.DataFrame(json.loads(json_data))
             updated_df = rename_columns(df, json.loads(new_column_names))
             return updated_df.to_json(orient="records")
-
         elif action == "flatten_json_structure":
             if not json_data:
                 raise HTTPException(status_code=400, detail="JSON data is required for this action.")
             flat_data = flatten_json_structure(json.loads(json_data))
             return flat_data
-
+        
         elif action == "classify_income":
-            if not income:
-                raise HTTPException(status_code=400, detail="Income data is required for this action.")
-            income_category = classify_income(income)
-            return {"income_category": income_category}
+                    if not income:
+                        raise HTTPException(status_code=400, detail="Income data is required for this action.")
+                    income_category = classify_income(income)
+                    return {"income_category": income_category}
                 
+        # New action for custom_sort
         elif action == "custom_sort":
             if not sort_keys:
                 raise HTTPException(status_code=400, detail="Sort keys are required for this action.")
+            # Assuming sort_keys is a JSON string representing a list of keys
             keys = json.loads(sort_keys)
             if not isinstance(keys, list):
                 raise HTTPException(status_code=400, detail="Sort keys must be a list.")
@@ -85,30 +84,16 @@ async def utilities_endpoint(
             return {"sorted_keys": sorted_keys}
 
         else:
-            raise HTTPException(status_code=400, detail=f"{action}: Unsupported action.")
+            raise HTTPException(status_code=400, detail="Unsupported action.")
 
-    # except Exception as e:
-    #     # General error handling
-    #     raise HTTPException(status_code=500, detail=str(e))
-
+    
     except Exception as e:
-        # Log request data for debugging
-        logging.error(f"Error processing request: {request.url.path}")
-        
-        # Since you can't directly await request.body() here due to potential double-reading issues,
-        # you would usually log other parts of the request or pass the entire request to background tasks if needed.
-        # For immediate debugging, you can log headers or client IP:
-        logging.error(f"Request headers: {request.headers}")
-        client_ip = request.client.host
-        logging.error(f"Client IP: {client_ip}")
+        # General error handling
+        raise HTTPException(status_code=500, detail=str(e))
 
-        # Log the exception details
-        logging.error(f"Exception: {str(e)}")
 
-        # Respond with a more informative error message
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-    
-    
+
+
     
 # from fastapi import FastAPI, File, UploadFile, HTTPException
 # from typing import List

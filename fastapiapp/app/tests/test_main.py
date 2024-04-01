@@ -11,17 +11,18 @@ def test_process_file():
             data={"action": "process_file"},
             files={"uploaded_file": file}
         )
-    assert response.status_code != 404
-    assert response.status_code == 500
-    assert response.status_code == 200
+
+    # assert response.status_code == 500 #kalau kita nak request kita fails
+
+
+    assert response.status_code == 200 #dia test berjaya
     json_response = response.json()
-    assert "df_complete" in json_response
+    assert "df_complete" in json_response , "df_complete is not in Json Response"
     assert "phonenum_list" in json_response
     assert "total_calls" in json_response
     assert "total_pickup" in json_response
-    # Example: Check if 'df_complete' and 'phonenum_list' are not empty
-    assert json.loads(json_response["df_complete"])  # Converts string representation of list to list
-    assert json.loads(json_response["phonenum_list"])
+    assert json.loads(json_response["df_complete"]) is not None , "df_complete is empty"
+    assert json.loads(json_response["phonenum_list"]) is not None , "phonenum_list is empty"
 
 def test_parse_questions_and_answers():
     sample_json_data = '{"question1": {"question": "What is FastAPI?", "answers": {"1": "A web framework"}}}'

@@ -1,98 +1,98 @@
 # I move this to main.py because this is basically main fastapi
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from modules.data_cleaner_utils_page1 import (
-    process_file
-)
-from modules.questionnaire_utils_page2 import (parse_questions_and_answers,
-    rename_columns
-)
-from modules.keypress_decoder_utils_page3 import (parse_text_to_json , custom_sort , classify_income , process_file_content, flatten_json_structure)
+# from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+# from modules.data_cleaner_utils_page1 import (
+#     process_file
+# )
+# from modules.questionnaire_utils_page2 import (parse_questions_and_answers,
+#     rename_columns
+# )
+# from modules.keypress_decoder_utils_page3 import (parse_text_to_json , custom_sort , classify_income , process_file_content, flatten_json_structure)
 
-import pandas as pd
-import json
+# import pandas as pd
+# import json
 
-app = FastAPI()
+# app = FastAPI()
 
-@app.post("/utilities/")
-async def utilities_endpoint(
-    action: str = Form(...),
-    uploaded_file: UploadFile = File(None),
-    text_content: str = Form(None),
-    json_data: str = Form(None),
-    new_column_names: str = Form(None),
-    income: str = Form(None),  # For classify_income
-    sort_keys: str = Form(None)  # New for custom_sort
-):  
-    try:
-        if action == "process_file":
-            if not uploaded_file:
-                raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
-            df_complete, phonenum_list, total_calls, total_pickup = process_file(uploaded_file.file)
-            return {
-                "df_complete": df_complete.to_json(orient="records"),
-                "phonenum_list": phonenum_list.to_json(orient="records"),
-                "total_calls": total_calls,
-                "total_pickup": total_pickup
-            }
+# @app.post("/utilities/")
+# def utilities_endpoint(
+#     action: str = Form(...),
+#     uploaded_file: UploadFile = File(None),
+#     text_content: str = Form(None),
+#     json_data: str = Form(None),
+#     new_column_names: str = Form(None),
+#     income: str = Form(None),  # For classify_income
+#     sort_keys: str = Form(None)  # New for custom_sort
+# ):  
+#     try:
+#         if action == "process_file":
+#             if not uploaded_file:
+#                 raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
+#             df_complete, phonenum_list, total_calls, total_pickup = process_file(uploaded_file.file)
+#             return {
+#                 "df_complete": df_complete.to_json(orient="records"),
+#                 "phonenum_list": phonenum_list.to_json(orient="records"),
+#                 "total_calls": total_calls,
+#                 "total_pickup": total_pickup
+#             }
             
-        # Handling file processing
-        if action == "process_file_content":
-            if not uploaded_file:
-                raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
-            processed_data, message, error = await process_file_content(uploaded_file)
-            if error:
-                raise HTTPException(status_code=500, detail=error)
-            return {"processed_data": processed_data, "message": message}
+#         # Handling file processing
+#         if action == "process_file_content":
+#             if not uploaded_file:
+#                 raise HTTPException(status_code=400, detail="Uploaded file is required for this action.")
+#             processed_data, message, error = process_file_content(uploaded_file)
+#             if error:
+#                 raise HTTPException(status_code=500, detail=error)
+#             return {"processed_data": processed_data, "message": message}
         
-        elif action == "parse_questions_and_answers":
-            if not json_data:
-                raise HTTPException(status_code=400, detail="JSON data is required for this action.")
-            parsed_data = parse_questions_and_answers(json.loads(json_data))
-            return parsed_data
-        elif action == "parse_text_to_json":
-            if not text_content:
-                raise HTTPException(status_code=400, detail="Text content is required for this action.")
-            json_data = parse_text_to_json(text_content)
-            return json_data
-        elif action == "rename_columns":
-            if not json_data or not new_column_names:
-                raise HTTPException(status_code=400, detail="JSON data and new column names are required for this action.")
-            df = pd.DataFrame(json.loads(json_data))
-            updated_df = rename_columns(df, json.loads(new_column_names))
-            return updated_df.to_json(orient="records")
-        elif action == "flatten_json_structure":
-            if not json_data:
-                raise HTTPException(status_code=400, detail="JSON data is required for this action.")
-            flat_data = flatten_json_structure(json.loads(json_data))
-            return flat_data
+#         elif action == "parse_questions_and_answers":
+#             if not json_data:
+#                 raise HTTPException(status_code=400, detail="JSON data is required for this action.")
+#             parsed_data = parse_questions_and_answers(json.loads(json_data))
+#             return parsed_data
+#         elif action == "parse_text_to_json":
+#             if not text_content:
+#                 raise HTTPException(status_code=400, detail="Text content is required for this action.")
+#             json_data = parse_text_to_json(text_content)
+#             return json_data
+#         elif action == "rename_columns":
+#             if not json_data or not new_column_names:
+#                 raise HTTPException(status_code=400, detail="JSON data and new column names are required for this action.")
+#             df = pd.DataFrame(json.loads(json_data))
+#             updated_df = rename_columns(df, json.loads(new_column_names))
+#             return updated_df.to_json(orient="records")
+#         elif action == "flatten_json_structure":
+#             if not json_data:
+#                 raise HTTPException(status_code=400, detail="JSON data is required for this action.")
+#             flat_data = flatten_json_structure(json.loads(json_data))
+#             return flat_data
         
-        elif action == "classify_income":
-                    if not income:
-                        raise HTTPException(status_code=400, detail="Income data is required for this action.")
-                    income_category = classify_income(income)
-                    return {"income_category": income_category}
+#         elif action == "classify_income":
+#                     if not income:
+#                         raise HTTPException(status_code=400, detail="Income data is required for this action.")
+#                     income_category = classify_income(income)
+#                     return {"income_category": income_category}
                 
-        # New action for custom_sort
-        elif action == "custom_sort":
-            if not sort_keys:
-                raise HTTPException(status_code=400, detail="Sort keys are required for this action.")
-            # Assuming sort_keys is a JSON string representing a list of keys
-            keys = json.loads(sort_keys)
-            if not isinstance(keys, list):
-                raise HTTPException(status_code=400, detail="Sort keys must be a list.")
-            sorted_keys = sorted(keys, key=lambda x: custom_sort(x))
-            return {"sorted_keys": sorted_keys}
+#         # New action for custom_sort
+#         elif action == "custom_sort":
+#             if not sort_keys:
+#                 raise HTTPException(status_code=400, detail="Sort keys are required for this action.")
+#             # Assuming sort_keys is a JSON string representing a list of keys
+#             keys = json.loads(sort_keys)
+#             if not isinstance(keys, list):
+#                 raise HTTPException(status_code=400, detail="Sort keys must be a list.")
+#             sorted_keys = sorted(keys, key=lambda x: custom_sort(x))
+#             return {"sorted_keys": sorted_keys}
 
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported action.")
+#         else:
+#             raise HTTPException(status_code=400, detail="Unsupported action.")
 
     
-    except Exception as e:
-        # General error handling
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         # General error handling
+#         raise HTTPException(status_code=500, detail=str(e))
 
-
+# All_Utils
 # import pandas as pd
 # import numpy as np
 

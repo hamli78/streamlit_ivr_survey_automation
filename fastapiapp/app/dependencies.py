@@ -1,9 +1,5 @@
-# from modules.database import SessionLocal
+from fastapi import HTTPException
 
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
+def verify_token(token: str):
+    if token != "expected_token":
+        raise HTTPException(status_code=400, detail="Invalid Token")
