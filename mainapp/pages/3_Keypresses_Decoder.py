@@ -98,8 +98,8 @@ def run():
            
         for i, col in enumerate(question_columns, start=1):
             st.subheader(f"Q{i}: {col}")
-            unique_values = renamed_data[col].unique()
             
+            unique_values = [val for val in renamed_data[col].unique() if pd.notna(val)]
             # Handle cases where values do not follow the 'key=value' format
             def sort_key(x):
                 parts = x.split('=')
