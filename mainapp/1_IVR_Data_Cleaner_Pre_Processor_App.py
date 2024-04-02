@@ -37,26 +37,6 @@ def set_dark_mode_css():
 # Apply the dark mode CSS
 set_dark_mode_css()
 
-def process_files_through_fastapi(uploaded_files):
-    """
-    Sends uploaded files to FastAPI for processing and returns the response.
-    """
-    url = "http://localhost:8000/utilities/"  # Adjust based on your FastAPI server URL
-    responses = []
-    
-    for uploaded_file in uploaded_files:
-        files = {"uploaded_file": (uploaded_file.name, uploaded_file, "text/csv")}
-        data = {"action": "process_file"}
-        response = requests.post(url, files=files, data=data)
-        
-        if response.status_code == 200:
-            responses.append(response.json())
-        else:
-            st.error("Failed to process file: " + uploaded_file.name)
-            return None  # or handle error differently
-            
-    return responses
-
 def run():
     """
     Processes the metrics functions
@@ -91,25 +71,7 @@ def run():
                 st.session_state['total_pickups'] = 0
                 st.session_state['file_count'] = 0
                 
-                # Process files through FastAPI and update session state
-                responses = process_files_through_fastapi(uploaded_files)
-                
-                if responses:  # Check if processing was successful
-                    for response in responses:
-                        # Assuming 'df_complete' and 'phonenum_list' are JSON strings of the DataFrames
-                        df_complete = pd.read_json(response['df_complete'])
-                        phonenum_list = pd.read_json(response['phonenum_list'])
-                        total_calls = response['total_calls']
-                        total_pickup = response['total_pickup']
-
-                        # Update session state with the processed data
-                        st.session_state['all_data'].append(df_complete)
-                        st.session_state['all_phonenum'].append(phonenum_list)
-                        st.session_state['total_calls_made'] += total_calls
-                        st.session_state['total_pickups'] += total_pickup
-                        st.session_state['file_count'] += 1
-
-                    st.session_state['processed'] = True
+                st.session_state['processed'] = True
 
         if st.session_state['processed']:
             # Use data from session state
