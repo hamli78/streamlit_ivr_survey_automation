@@ -1,10 +1,9 @@
-import pytest
 from fastapi.testclient import TestClient
 from io import BytesIO
 from modules.data_cleaner_utils_page1 import process_file
 from modules.questionnaire_utils_page2 import parse_questions_and_answers, rename_columns
 from modules.keypress_decoder_utils_page3 import parse_text_to_json, custom_sort, classify_income, process_file_content, flatten_json_structure
-from app.main import app
+from streamlit_ivr_survey_automation.fastapiapp.main import app
 import json
 
 client = TestClient(app)
