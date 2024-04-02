@@ -75,7 +75,7 @@ def run():
                     df_merge, phonenum_list, total_calls_made, total_of_pickups = process_file(uploaded_file)
                     st.session_state['all_data'].append(df_merge)
                     st.session_state['all_phonenum'].append(phonenum_list)
-                    st.session_state['total_calls_made_st'] += total_calls_made
+                    st.session_state['total_calls_made'] += total_calls_made
                     st.session_state['total_pickups'] += total_of_pickups
                     st.session_state['file_count'] += 1
 
@@ -89,7 +89,7 @@ def run():
 
             # Save statistics in session state
             st.session_state['total_CRs'] = combined_data.shape[0]
-            st.session_state['pick_up_rate_percentage'] = (st.session_state['total_pickups'] / st.session_state['total_calls_made_st']) * 100 if st.session_state['total_calls_made'] > 0 else 0
+            st.session_state['pick_up_rate_percentage'] = (st.session_state['total_pickups'] / st.session_state['total_calls_made']) * 100 if st.session_state['total_calls_made'] > 0 else 0
             st.session_state['cr_rate_percentage'] = (st.session_state['total_CRs'] / st.session_state['total_pickups']) * 100 if st.session_state['total_pickups'] > 0 else 0
                     
             # Update the placeholder with the new message after processing is complete

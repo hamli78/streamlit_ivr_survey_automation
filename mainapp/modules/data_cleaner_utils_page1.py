@@ -38,7 +38,7 @@ def process_file(uploaded_file):
     total_of_pickups = []
     i = 0
     
-    df = pd.read_csv(uploaded_file, skiprows=1, names=range(24), engine='python')
+    df = pd.read_csv(uploaded_file, skiprows=1, names=range(99), engine='python')
 
     # Drop all-empty columns
     df.dropna(axis='columns', how='all', inplace=True)
