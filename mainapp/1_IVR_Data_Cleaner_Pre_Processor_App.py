@@ -4,7 +4,6 @@ from datetime import datetime
 from modules.security_utils import check_password
 from modules.data_cleaner_utils_page1 import process_file
 from PIL import Image
-import requests  # New import for HTTP requests
 import numpy as np
 
 st.set_page_config(
@@ -71,6 +70,15 @@ def run():
                 st.session_state['total_pickups'] = 0
                 st.session_state['file_count'] = 0
                 
+                # Process files and update session state
+                for uploaded_file in uploaded_files:
+                    df_complete, phonenum_list, total_calls, total_pickup = process_file(uploaded_file)
+                    st.session_state['all_data'].append(df_complete)
+                    st.session_state['all_phonenum'].append(phonenum_list)
+                    st.session_state['total_calls_made'] += total_calls
+                    st.session_state['total_pickups'] += total_pickup
+                    st.session_state['file_count'] += 1
+
                 st.session_state['processed'] = True
 
         if st.session_state['processed']:
