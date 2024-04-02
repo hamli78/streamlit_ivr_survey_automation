@@ -40,6 +40,18 @@ def run():
     """
     Processes the metrics functions
     """
+    if 'processed' not in st.session_state:
+        st.session_state['processed'] = False
+        st.session_state['total_calls_made'] = 0
+        st.session_state['total_pickups'] = 0
+        st.session_state['total_CRs'] = 0
+
+    if 'df_merge' not in st.session_state:
+        st.session_state['df_merge'] = pd.DataFrame()
+        
+    if 'phonenum_combined' not in st.session_state:
+        st.session_state['phonenum_combined'] = pd.DataFrame()
+        
     # Check if data is already processed and available in session state
     if 'processed' not in st.session_state:
         st.session_state['processed'] = False
@@ -66,19 +78,39 @@ def run():
                 # Reset counters and lists
                 st.session_state['all_data'] = []
                 st.session_state['all_phonenum'] = []
-                st.session_state['total_calls_made_st'] = 0
+                st.session_state['total_calls_made'] = 0
                 st.session_state['total_pickups'] = 0
                 st.session_state['file_count'] = 0
-                
-                # Process files and update session state
+                st.session_state['processed'] = True
+
+                # Correctly unpack returned values from process_file
                 for uploaded_file in uploaded_files:
-                    df_merge, phonenum_list, total_calls_made, total_of_pickups = process_file(uploaded_file)
-                    st.session_state['all_data'].append(df_merge)
+                    df_complete, phonenum_list, total_calls_made, total_of_pickups, df_merge = process_file(uploaded_file)
+
+                    # Append or aggregate the results as needed
+                    st.session_state['all_data'].append(df_complete)
                     st.session_state['all_phonenum'].append(phonenum_list)
-                    st.session_state['total_calls_made_st'] += total_calls_made
+                    st.session_state['total_calls_made'] += total_calls_made
                     st.session_state['total_pickups'] += total_of_pickups
                     st.session_state['file_count'] += 1
+                    st.session_state['total_CRs'] += len(df_complete)
+                     # Aggregate the results
+                    st.session_state['df_merge'] = pd.concat([st.session_state['df_merge'], df_complete], ignore_index=True)
+                    st.session_state['phonenum_combined'] = pd.concat([st.session_state['phonenum_combined']], ignore_index=True).drop_duplicates()
+                    
+                # After processing all files:
+                # Aggregate df_complete DataFrames
+                if st.session_state['all_data']:
+                    st.session_state['df_merge'] = pd.concat(st.session_state['all_data'], ignore_index=True)
+                else:
+                    st.session_state['df_merge'] = pd.DataFrame()
 
+                # Aggregate phonenum_df DataFrames
+                if st.session_state['all_phonenum']:
+                    st.session_state['phonenum_combined'] = pd.concat(st.session_state['all_phonenum'], ignore_index=True).drop_duplicates()
+                else:
+                    st.session_state['phonenum_combined'] = pd.DataFrame()
+                                
                 st.session_state['processed'] = True
 
         if st.session_state['processed']:
@@ -89,7 +121,7 @@ def run():
 
             # Save statistics in session state
             st.session_state['total_CRs'] = combined_data.shape[0]
-            st.session_state['pick_up_rate_percentage'] = (st.session_state['total_pickups'] / st.session_state['total_calls_made_st']) * 100 if st.session_state['total_calls_made_st'] > 0 else 0
+            st.session_state['pick_up_rate_percentage'] = (st.session_state['total_pickups'] / st.session_state['total_calls_made']) * 100 if st.session_state['total_calls_made'] > 0 else 0
             st.session_state['cr_rate_percentage'] = (st.session_state['total_CRs'] / st.session_state['total_pickups']) * 100 if st.session_state['total_pickups'] > 0 else 0
                     
             # Update the placeholder with the new message after processing is complete
@@ -99,9 +131,9 @@ def run():
             
             # Organizing your data into a dictionary
             data = {
-                "Metric": ["Total calls made_st", "Total of pick-ups", "Total CRs", "Pick-up Rate", "CR Rate"],
+                "Metric": ["Total calls made", "Total of pick-ups", "Total CRs", "Pick-up Rate", "CR Rate"],
                 "Value": [
-                    f"{st.session_state['total_calls_made_st']:,}",
+                    f"{st.session_state['total_calls_made']:,}",
                     f"{st.session_state['total_pickups']:,}",
                     f"{st.session_state['total_CRs']:,}",
                     f"{st.session_state['pick_up_rate_percentage']:.2f}%",
