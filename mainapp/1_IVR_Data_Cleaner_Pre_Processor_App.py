@@ -131,11 +131,11 @@ def run():
             
             # Organizing your data into a dictionary
             data = {
-                "Metric": ["Total calls made", "Total of pick-ups", "Total CRs", "Pick-up Rate", "CR Rate"],
+                "Metric": ["Total calls made", "Total of pick-ups", "Pick-up Rate", "CR Rate"],
                 "Value": [
                     f"{st.session_state['total_calls_made']:,}",
                     f"{st.session_state['total_pickups']:,}",
-                    f"{st.session_state['total_CRs']:,}",
+                    # f"{st.session_state['total_CRs']:,}", nnti kene leatk kat Table balik value dia Total CRs
                     f"{st.session_state['pick_up_rate_percentage']:.2f}%",
                     f"{st.session_state['cr_rate_percentage']:.2f}%"
                 ]
