@@ -1,6 +1,34 @@
 import pandas as pd
 import numpy as np
 
+import pandas as pd
+
+def merger(df_list, phonenum_list):
+    """
+    Concatenates lists of DataFrames and renames a column.
+
+    Parameters:
+    - df_list (list of pd.DataFrame): List of DataFrames to be concatenated vertically.
+    - phonenum_list (list of pd.DataFrame): List of phone number DataFrames to be concatenated vertically.
+
+    Returns:
+    - df_merge (pd.DataFrame): Concatenated DataFrame of df_list.
+    - phonenum_combined (pd.DataFrame): Concatenated DataFrame of phonenum_list with 'PhoneNo' column renamed to 'phonenum'.
+    """
+    # Check if the lists are not empty before concatenating
+    if df_list:
+        df_merge = pd.concat(df_list, axis='index')
+    else:
+        df_merge = pd.DataFrame()  # Return an empty DataFrame if list is empty
+
+    if phonenum_list:
+        phonenum_combined = pd.concat(phonenum_list, axis='rows')
+        phonenum_combined.rename(columns={'PhoneNo': 'phonenum'}, inplace=True)
+    else:
+        phonenum_combined = pd.DataFrame()  # Return an empty DataFrame if list is empty
+
+    return df_merge, phonenum_combined
+
 
 
 def process_file(uploaded_file):
@@ -71,33 +99,8 @@ def process_file(uploaded_file):
 
     df_list.append(df_complete)
     
+    # Call the merger function at the end of process_file to merge df_list and phonenum_list
+    df_merge, phonenum_combined = merger([df_complete], [phonenum_list])  # Adjusted to pass lists of DataFrames
 
-    return df_complete, phonenum_list, total_calls_made, total_of_pickups
-
-import pandas as pd
-
-def merger(df_list, phonenum_list):
-    """
-    Concatenates lists of DataFrames and renames a column.
-
-    Parameters:
-    - df_list (list of pd.DataFrame): List of DataFrames to be concatenated vertically.
-    - phonenum_list (list of pd.DataFrame): List of phone number DataFrames to be concatenated vertically.
-
-    Returns:
-    - df_merge (pd.DataFrame): Concatenated DataFrame of df_list.
-    - phonenum_combined (pd.DataFrame): Concatenated DataFrame of phonenum_list with 'PhoneNo' column renamed to 'phonenum'.
-    """
-    # Check if the lists are not empty before concatenating
-    if df_list:
-        df_merge = pd.concat(df_list, axis='index')
-    else:
-        df_merge = pd.DataFrame()  # Return an empty DataFrame if list is empty
-
-    if phonenum_list:
-        phonenum_combined = pd.concat(phonenum_list, axis='rows')
-        phonenum_combined.rename(columns={'PhoneNo': 'phonenum'}, inplace=True)
-    else:
-        phonenum_combined = pd.DataFrame()  # Return an empty DataFrame if list is empty
-
-    return df_merge, phonenum_combined
+    # Correct the return statement to include all expected return values
+    return df_complete, phonenum_combined, total_calls_made, total_of_pickups, df_merge
