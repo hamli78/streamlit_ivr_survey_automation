@@ -73,10 +73,6 @@ def run():
         if uploaded_files:
             st.write(f"Number of files uploaded: {len(uploaded_files)}")
 
-        else:
-            st.warning(("Please upload the CSV file(s) first."))
-            return # Exits the function early if no files have been uploaded
-
         if st.button('Process'):
             with st.spinner("Processing the files..."):
                 # Reset counters and lists
