@@ -74,3 +74,15 @@ def flatten_json_structure(flow_no_mappings):
     if not flow_no_mappings:
         return {}
     return {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+
+def drop_duplicates_from_dataframe(df):
+    """
+    Drops duplicate rows from the DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame from which duplicates will be removed.
+
+    Returns:
+    - pd.DataFrame: A DataFrame with duplicates removed.
+    """
+    return df.drop_duplicates()

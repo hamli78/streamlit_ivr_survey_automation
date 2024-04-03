@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import re  # For regex operations
 import json
-from modules.keypress_decoder_utils_page3 import parse_text_to_json, custom_sort, classify_income
+from modules.keypress_decoder_utils_page3 import parse_text_to_json, custom_sort, classify_income, drop_duplicates_from_dataframe
 
 
 # Configure the default settings of the page.
@@ -175,6 +175,7 @@ def run():
             # Display updated DataFrame and other information
 
             st.write("Preview of Decoded Data:")
+            renamed_data = drop_duplicates_from_dataframe(renamed_data)
             st.dataframe(renamed_data)
             
             # Display IVR length and shape
