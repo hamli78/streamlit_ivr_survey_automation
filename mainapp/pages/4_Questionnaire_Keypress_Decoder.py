@@ -90,87 +90,76 @@ def run():
             st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
 
-                # Ensure renamed_data is available before continuing
-                if 'renamed_data' in st.session_state:
-                    renamed_data = st.session_state['renamed_data']
+            decoded_data = st.session_state['renamed_data']
+            decoded_data = drop_duplicates_from_dataframe(decoded_data)
+
+            # Sort columns based on custom criteria
+            sorted_columns = sorted(decoded_data.columns, key=custom_sort)
+            decoded_data = decoded_data[sorted_columns]
+
+            # Classify income and handle additional calculations
+            if 'IncomeRange' in decoded_data.columns:
+                income_group = decoded_data['IncomeRange'].apply(classify_income)
+                income_range_index = decoded_data.columns.get_loc('IncomeRange')
+                decoded_data.insert(income_range_index + 1, 'IncomeGroup', income_group)
+
+            # Display updated DataFrame and other information
+
+            st.write("Preview of Decoded Data:")
+            st.dataframe(renamed_data)
+            
+            renamed_data = drop_duplicates_from_dataframe(renamed_data)
+
+            # Display IVR length and shape
+            st.write(f'IVR Length: {len(renamed_data)} rows')
+            st.write(renamed_data.shape)
+
+            # Current date for reporting
+            today = datetime.now()
+            st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
+            st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
+            
+            # Check for null values 
+            st.markdown("### Null Values Inspection")
+            renamed_data.dropna(inplace=True)
+            st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
+            st.write(f'Preview of Total of Null Values per Column:')
+            st.write(renamed_data.isnull().sum())
+            
+            st.markdown("### Sanity check for values in each column")
+            for col in renamed_data.columns:
+                if col != 'phonenum':
+                    st.write(renamed_data[col].value_counts(normalize=True))
+                    st.write("\n")
+            
+            st.write("Preview of Decoded Data:")
+            st.dataframe(renamed_data)
+
+            # Initialize session state for output_filename if it doesn't already exist
+            if 'output_filename' not in st.session_state:
+                formatted_date = datetime.now().strftime("%Y%m%d")
+                st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
+
+            # Function to update the filename in session state based on user input
+            def update_output_filename():
+                if st.session_state.output_filename_input and not st.session_state.output_filename_input.lower().endswith('.csv'):
+                    st.session_state.output_filename = st.session_state.output_filename_input + '.csv'
                 else:
-                    st.error("No renamed data available. Please rename data first.")
-                    return  # Exit function if no renamed data available
-                # Additional code for decoding keypresses and other operations...
-                if 'renamed_data' in st.session_state:
-                    decoded_data = st.session_state['renamed_data']
-                    decoded_data = drop_duplicates_from_dataframe(decoded_data)
+                    st.session_state.output_filename = st.session_state.output_filename_input
 
-                    # Sort columns based on custom criteria
-                    sorted_columns = sorted(decoded_data.columns, key=custom_sort)
-                    decoded_data = decoded_data[sorted_columns]
+            # User input for editing the filename, tied directly to session state
+            st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
 
-                    # Classify income and handle additional calculations
-                    if 'IncomeRange' in decoded_data.columns:
-                        income_group = decoded_data['IncomeRange'].apply(classify_income)
-                        income_range_index = decoded_data.columns.get_loc('IncomeRange')
-                        decoded_data.insert(income_range_index + 1, 'IncomeGroup', income_group)
+            # Assuming renamed_data is defined elsewhere and is the data you want to download
+            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
 
-                # Display updated DataFrame and other information
-
-                st.write("Preview of Decoded Data:")
-                st.dataframe(renamed_data)
-                
-                renamed_data = drop_duplicates_from_dataframe(renamed_data)
-
-                # Display IVR length and shape
-                st.write(f'IVR Length: {len(renamed_data)} rows')
-                st.write(renamed_data.shape)
-
-                # Current date for reporting
-                today = datetime.now()
-                st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
-                st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
-                
-                # Check for null values 
-                st.markdown("### Null Values Inspection")
-                renamed_data.dropna(inplace=True)
-                st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
-                st.write(f'Preview of Total of Null Values per Column:')
-                st.write(renamed_data.isnull().sum())
-                
-                st.markdown("### Sanity check for values in each column")
-                for col in renamed_data.columns:
-                    if col != 'phonenum':
-                        st.write(renamed_data[col].value_counts(normalize=True))
-                        st.write("\n")
-                
-                st.write("Preview of Decoded Data:")
-                st.dataframe(renamed_data)
-
-                # Initialize session state for output_filename if it doesn't already exist
-                if 'output_filename' not in st.session_state:
-                    formatted_date = datetime.now().strftime("%Y%m%d")
-                    st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
-
-                # Function to update the filename in session state based on user input
-                def update_output_filename():
-                    if st.session_state.output_filename_input and not st.session_state.output_filename_input.lower().endswith('.csv'):
-                        st.session_state.output_filename = st.session_state.output_filename_input + '.csv'
-                    else:
-                        st.session_state.output_filename = st.session_state.output_filename_input
-
-                # User input for editing the filename, tied directly to session state
-                st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
-
-                # Assuming renamed_data is defined elsewhere and is the data you want to download
-                data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
-
-                # Use the session state for the filename in the download button
-                st.download_button(
-                    label="Download Decoded Data as CSV",
-                    data=data_as_csv,
-                    file_name=st.session_state['output_filename'],
-                    mime='text/csv'
-                )
-
-        else:
-            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+            # Use the session state for the filename in the download button
+            st.download_button(
+                label="Download Decoded Data as CSV",
+                data=data_as_csv,
+                file_name=st.session_state['output_filename'],
+                mime='text/csv'
+            )
 
 if __name__ == "__main__":
     run()
