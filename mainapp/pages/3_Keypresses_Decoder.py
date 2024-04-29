@@ -1,16 +1,11 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
-from modules.keypress_decoder_utils_page3 import custom_sort, classify_income, drop_duplicates_from_dataframe
+from modules.keypress_decoder_utils_page3 import custom_sort
 
 # Configure the default settings of the page.
 icon = Image.open('./images/invoke_logo.png')
-st.set_page_config(
-    page_title='IVR Data Cleaner 🧮',
-    layout="wide",
-    page_icon=icon,
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title='Keypresses Decoder🔑', layout="wide", page_icon=icon, initial_sidebar_state="expanded")
 
 def set_dark_mode_css():
     dark_mode_css = """
@@ -35,38 +30,39 @@ set_dark_mode_css()
 st.title('Keypresses Decoder🔑')
 
 if 'qa_dict' not in st.session_state:
-    st.error("Please upload the file in the initial step and parse the data.")
+    st.error("Please upload the file in the first script and parse the data.")
     st.stop()
 
+# Assuming some DataFrame is already loaded for demonstration
+# For example, initializing a placeholder DataFrame if not present
+if 'renamed_data' not in st.session_state:
+    st.session_state['renamed_data'] = pd.DataFrame({
+        'Question1': ['1-Yes', '2-No'],
+        'Question2': ['1-Yes', '2-No', '3-Maybe']
+    })
+
 def run():
-    if 'renamed_data' in st.session_state:
-        renamed_data = st.session_state['renamed_data']
+    renamed_data = st.session_state['renamed_data']
+    question_columns = renamed_data.columns  # Modify this as needed
+    
+    st.markdown("## Review and Decode Responses")
+    for col in question_columns:
+        st.subheader(f"Column: {col}")
+        answers = renamed_data[col].unique()
+        for answer in answers:
+            if f"{col}_{answer}" not in st.session_state:
+                st.session_state[f"{col}_{answer}"] = st.session_state['qa_dict'].get(answer, answer)
+            new_answer = st.text_input(f"Rename '{answer}' to:", value=st.session_state[f"{col}_{answer}"], key=f"{col}_{answer}_input")
+            st.session_state[f"{col}_{answer}"] = new_answer
 
-        if 'keypress_mappings' not in st.session_state:
-            st.session_state['keypress_mappings'] = {}
+        if st.button(f"Apply Changes to {col}"):
+            apply_changes(col, renamed_data)
 
-        question_columns = renamed_data.columns[1:-1]  # Assuming the first and last columns are not questions
-
-        for i, col in enumerate(question_columns, start=1):
-            unique_values = [val for val in renamed_data[col].unique() if pd.notna(val)]
-            for val in unique_values:
-                unique_key = f"{col}_{val}"
-
-                if unique_key not in st.session_state['keypress_mappings']:
-                    st.session_state['keypress_mappings'][unique_key] = val  # Preserving initial mapping
-
-                readable_val = st.text_input(f"Rename '{val}' to:", value=st.session_state['keypress_mappings'][unique_key], key=unique_key)
-                st.session_state['keypress_mappings'][unique_key] = readable_val
-
-        if st.button("Decode Keypresses"):
-            for col in question_columns:
-                if col in renamed_data.columns:
-                    renamed_data[col] = renamed_data[col].map(lambda val: st.session_state['keypress_mappings'].get(f"{col}_{val}", val))
-            st.session_state['decoded_data'] = renamed_data
-            st.dataframe(renamed_data.head())
-
-    else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+def apply_changes(column, data):
+    mappings = {val: st.session_state[f"{column}_{val}"] for val in data[column].unique()}
+    data[column] = data[column].map(mappings)
+    st.session_state['decoded_data'] = data  # Save updated DataFrame to session state
+    st.success(f"Changes applied to {column}")
 
 if __name__ == "__main__":
     run()
