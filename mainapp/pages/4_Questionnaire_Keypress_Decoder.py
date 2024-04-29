@@ -51,22 +51,21 @@ def recall_uploaded_file_from_session_state():
             return flow_no_mappings
         except Exception as e:
             st.error(f"Error processing file: {e}")
+            return None
     else:
         st.error("No file uploaded. Please upload a file first.")
+        return None
 
 # Recall the uploaded file from the session state
 flow_no_mappings = recall_uploaded_file_from_session_state()
 
 # Now you can continue processing the file
 if flow_no_mappings is not None:
-    # Process the file further
-    pass
-
-# Flatten the JSON structure to simplify the mapping access
-simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-for q_key, q_data in flow_no_mappings.items():
-    for answer_key, answer_value in q_data["answers"].items():
-        simple_mappings[answer_key] = answer_value
+    # Flatten the JSON structure to simplify the mapping access
+    simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+    for q_key, q_data in flow_no_mappings.items():
+        for answer_key, answer_value in q_data["answers"].items():
+            simple_mappings[answer_key] = answer_value
         
 def run12():
 
