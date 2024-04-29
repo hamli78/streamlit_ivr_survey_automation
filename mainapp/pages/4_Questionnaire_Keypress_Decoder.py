@@ -256,11 +256,12 @@ def run11():
             for answer_key, answer_value in q_data["answers"].items():
                 simple_mappings[answer_key] = answer_value
                 
-        
+    run12()    
+    
     else:
         st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
-    run12()
+    
 
 if __name__ == "__main__":
     run11()
