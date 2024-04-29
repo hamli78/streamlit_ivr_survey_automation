@@ -43,7 +43,7 @@ st.title('Keypresses Decoder🔑')
 
 st.markdown("### Upload Script OR JSON Files (.txt,.json format)")
 # Add a file uploader at the beginning of your app
-if "uploaded_file" in session_state:
+if "uploaded_file" in st.session_state:
     uploaded_file = st.session_state.get("uploaded_file")
 else:
     uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
