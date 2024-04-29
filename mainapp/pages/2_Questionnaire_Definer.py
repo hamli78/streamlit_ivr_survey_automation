@@ -68,12 +68,6 @@ def run1():
         cleaned_data = st.session_state['cleaned_data']
         column_names_to_display = [col for col in cleaned_data.columns]
 
-        if 'update_names' in st.session_state and st.session_state['update_names']:
-            # Update session state for each new column name only once
-            for i, name in enumerate(st.session_state['new_column_names']):
-                st.session_state[f"new_name_{i}"] = name
-            st.session_state['update_names'] = False  # Reset flag
-
         new_column_names = []
         for idx, default_name in enumerate(column_names_to_display):
             default_value = st.session_state.get(f"new_name_{idx}", default_name)
