@@ -95,7 +95,9 @@ def run1():
         if st.button("Apply New Column Names"):
             updated_df = rename_columns(cleaned_data, new_column_names)
             st.session_state['renamed_data'] = updated_df
-            st.session_state.update({f"new_name_{i}": name for i, name in enumerate(new_column_names)})  # Save new names to session state
+            # Update session state for each new column name
+            for i, name in enumerate(new_column_names):
+                st.session_state[f"new_name_{i}"] = name  # Set each new name individually
             st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
 
