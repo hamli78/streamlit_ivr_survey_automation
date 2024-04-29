@@ -230,7 +230,7 @@ def run1():
     st.title('Questionnaire Definer🎡')
     st.markdown("### Upload Script Files (.txt, .json format)")
 
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
     file_parsed = False  # Track if a file has been parsed
 
     if uploaded_file is not None:
@@ -251,7 +251,7 @@ def run1():
             st.success("Text questions and answers parsed successfully.✨")
             file_parsed = True
 
-     # Section for manual and auto-filled renaming
+    # Section for manual and auto-filled renaming
     st.markdown("## Rename Columns")
     if 'cleaned_data' not in st.session_state:
         st.warning("No cleaned data available for renaming.")
@@ -261,6 +261,8 @@ def run1():
 
         # Manual input for renaming columns, with special handling for the first and last columns
         new_column_names = []
+        unique_session_key = datetime.now().isoformat()  # Unique key for each session to avoid duplicate widget IDs
+
         for idx, default_name in enumerate(column_names_to_display):
             if idx == 0:
                 # First column reserved for "phonenum"
@@ -275,7 +277,9 @@ def run1():
             else:
                 default_value = default_name
 
-            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
+            # Use unique_session_key to create a unique key for each widget
+            input_key = f"new_name_{idx}_{unique_session_key}"
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=input_key)
             new_column_names.append(new_name)
 
         if st.button("Apply New Column Names"):
