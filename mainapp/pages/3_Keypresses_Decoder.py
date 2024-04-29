@@ -47,6 +47,8 @@ uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow
 
 # Initialize a variable to hold the mappings
 flow_no_mappings = {}
+uploaded_file = st.session_state['uploaded_file']
+file_content = uploaded_file['content']
 
 # Check if a file is uploaded
 if uploaded_file is not None:

@@ -32,6 +32,32 @@ def set_dark_mode_css():
 
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
 
+# Initialize a variable to hold the mappings
+flow_no_mappings = {}
+
+# Check if a file is uploaded
+if uploaded_file is not None:
+    file_content = uploaded_file.getvalue().decode("utf-8")
+    try:
+        if uploaded_file.type == "application/json":
+            # Handle JSON file
+            flow_no_mappings = json.loads(file_content)
+        else:
+            # Handle plain text file
+            flow_no_mappings = parse_text_to_json(file_content)
+        st.success("Questions and answers parsed successfully.✨")
+    except Exception as e:
+        st.error(f"Error processing file: {e}")
+else:
+        # Optional: Inform the user to upload a file
+        st.info("Please upload a file to parse questions and their answers.")
+
+# Flatten the JSON structure to simplify the mapping access
+simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+for q_key, q_data in flow_no_mappings.items():
+    for answer_key, answer_value in q_data["answers"].items():
+        simple_mappings[answer_key] = answer_value
+        
 def run12():
 
     if 'renamed_data' in st.session_state:
@@ -57,7 +83,7 @@ def run12():
                         st.write(f"Unique Values in {col} before mapping:", renamed_data[col].unique())
                         
         st.write("P/S : After uploading the file, You can review the Unique FlowNo above and check if got any unique FlowNo that is not in the original Script;(it might be due to the user mispressed the key), or drop questions that you don't want to include(analyze) in the DataFrame. Additionally, you can remove any FlowNo entries that don't exist in the script due to mistaken extra keypress entries made by the call center during the campaign that is not alligned with the original script.")
-        
+           
         for i, col in enumerate(question_columns, start=1):
             st.subheader(f"Q{i}: {col}")
             
@@ -192,77 +218,104 @@ def run12():
                 mime='text/csv'
             )
 
-# Initialize a variable to hold the mappings
-flow_no_mappings = {}
-
-# Flatten the JSON structure to simplify the mapping access
-simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-for q_key, q_data in flow_no_mappings.items():
-    for answer_key, answer_value in q_data["answers"].items():
-        simple_mappings[answer_key] = answer_value
 
 ########################################################################
 
-def run11():
-    st.title('IVR Data Processor 🚀')
-
+def run1():
+    st.title('Questionnaire Definer🎡')
     st.markdown("### Upload Script Files (.txt, .json format)")
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
+
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
     file_parsed = False  # Track if a file has been parsed
-    flow_no_mappings = {}
 
     if uploaded_file is not None:
         file_contents = uploaded_file.getvalue().decode("utf-8")
+
         if uploaded_file.type == "application/json":
             try:
                 json_data = json.loads(file_contents)
                 parsed_data = parse_questions_and_answers(json_data)
                 st.session_state['qa_dict'] = parsed_data
-                flow_no_mappings = json_data
                 st.success("JSON questions and answers parsed successfully.✨")
                 file_parsed = True
             except json.JSONDecodeError:
                 st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
         else:  # For text format
-            parsed_data = parse_qa_text_to_json(file_contents)
+            parsed_data = parse_text_to_json(file_contents)
             st.session_state['qa_dict'] = parsed_data
-            flow_no_mappings = parse_qa_text_to_json(file_contents)
             st.success("Text questions and answers parsed successfully.✨")
             file_parsed = True
 
-        # Initialize a variable to hold the mappings
-        flow_no_mappings = {}
-
-        # Check if a file is uploaded
-        if uploaded_file is not None:
-            file_content = uploaded_file.getvalue().decode("utf-8")
-            try:
-                if uploaded_file.type == "application/json":
-                    # Handle JSON file
-                    flow_no_mappings = json.loads(file_content)
-                else:
-                    # Handle plain text file
-                    flow_no_mappings = parse_text_to_json(file_content)
-                st.success("Questions and answers parsed successfully.✨")
-            except Exception as e:
-                st.error(f"Error processing file: {e}")
-        else:
-                # Optional: Inform the user to upload a file
-                st.info("Please upload a file to parse questions and their answers.")
-
-            # Flatten the JSON structure to simplify the mapping access
-        simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-        for q_key, q_data in flow_no_mappings.items():
-            for answer_key, answer_value in q_data["answers"].items():
-                simple_mappings[answer_key] = answer_value
-                
-        run12()    
-
+     # Section for manual and auto-filled renaming
+    st.markdown("## Rename Columns")
+    if 'cleaned_data' not in st.session_state:
+        st.warning("No cleaned data available for renaming.")
     else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+        cleaned_data = st.session_state['cleaned_data']
+        column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
 
-    
+        # Manual input for renaming columns, with special handling for the first and last columns
+        new_column_names = []
+        for idx, default_name in enumerate(column_names_to_display):
+            if idx == 0:
+                # First column reserved for "phonenum"
+                default_value = "phonenum"
+            elif idx == len(column_names_to_display) - 1:
+                # Last column reserved for "Set"
+                default_value = "Set"
+            elif file_parsed:
+                # Adjust question numbering to start from column 1, not 0
+                question_key = f"Q{idx}"  # Adjusted to match questions starting from 1
+                default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
+            else:
+                default_value = default_name
 
-if __name__ == "__main__":
-    run11()
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
+            new_column_names.append(new_name)
+
+        if st.button("Apply New Column Names"):
+            updated_df = rename_columns(cleaned_data, new_column_names)
+            st.session_state['renamed_data'] = updated_df
+            st.write("DataFrame with Renamed Columns:")
+            st.dataframe(updated_df.head())
+            
+    run12()    
+         # Section for manual and auto-filled renaming
+    st.markdown("## Rename Columns")
+    if 'cleaned_data' not in st.session_state:
+        st.warning("No cleaned data available for renaming.")
+    else:
+        cleaned_data = st.session_state['cleaned_data']
+        column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
+
+        # Manual input for renaming columns, with special handling for the first and last columns
+        new_column_names = []
+        for idx, default_name in enumerate(column_names_to_display):
+            if idx == 0:
+                # First column reserved for "phonenum"
+                default_value = "phonenum"
+            elif idx == len(column_names_to_display) - 1:
+                # Last column reserved for "Set"
+                default_value = "Set"
+            elif file_parsed:
+                # Adjust question numbering to start from column 1, not 0
+                question_key = f"Q{idx}"  # Adjusted to match questions starting from 1
+                default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
+            else:
+                default_value = default_name
+
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
+            new_column_names.append(new_name)
+
+        if st.button("Apply New Column Names"):
+            updated_df = rename_columns(cleaned_data, new_column_names)
+            st.session_state['renamed_data'] = updated_df
+            st.write("DataFrame with Renamed Columns:")
+            st.dataframe(updated_df.head())
+            
+        # Check if 'renamed_data' is available before calling run12()
+        if 'renamed_data' in st.session_state:
+            run12()
+        else:
+            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
