@@ -41,60 +41,25 @@ set_dark_mode_css()
 
 st.title('Keypresses Decoder🔑')
 
-st.markdown("### Upload Script OR JSON Files (.txt,.json format)")
-# Add a file uploader at the beginning of your app
-if "uploaded_file" in st.session_state:
-    uploaded_file = st.session_state.get("uploaded_file")
-else:
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
+if 'qa_dict' not in st.session_state:
+    st.error("Please upload the file in the initial step and parse the data.")
+    st.stop()
 
-# Initialize a variable to hold the mappings
-flow_no_mappings = {}
+# Existing parsed data is used here
+flow_no_mappings = st.session_state['qa_dict']
 
-# Check if a file is uploaded
-if uploaded_file is not None:
-    file_content = uploaded_file.getvalue().decode("utf-8")
-    try:
-        if uploaded_file.type == "application/json":
-            # Handle JSON file
-            flow_no_mappings = json.loads(file_content)
-        else:
-            # Handle plain text file
-            flow_no_mappings = parse_text_to_json(file_content)
-        st.success("Questions and answers parsed successfully.✨")
-    except Exception as e:
-        st.error(f"Error processing file: {e}")
-else:
-        # Optional: Inform the user to upload a file
-        st.info("Please upload a file to parse questions and their answers.")
-
-# Flatten the JSON structure to simplify the mapping access
-simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-for q_key, q_data in flow_no_mappings.items():
-    for answer_key, answer_value in q_data["answers"].items():
-        simple_mappings[answer_key] = answer_value
+st.markdown("### Uploaded Data Summary")
+st.json(flow_no_mappings)
         
 def run():
-        if 'cleaned_data' in st.session_state:
-            cleaned_data = st.session_state['cleaned_data']
-        else:
-            st.warning("No cleaned data available for renaming.")
-            return
-        if 'keypress_mappings' not in st.session_state:
-            st.session_state['keypress_mappings'] = {}
-            
-        if 'drop_cols' not in st.session_state:
-            st.session_state['drop_cols'] = []
 
-        if 'renamed_data' in st.session_state:
-            renamed_data = st.session_state['renamed_data']
-            
-            # Sort columns based on custom criteria
-            sorted_columns = sorted(renamed_data.columns, key=custom_sort)
-            renamed_data = renamed_data[sorted_columns]
-
-        renamed_data = cleaned_data 
-
+    if 'renamed_data' in st.session_state:
+        renamed_data = st.session_state['renamed_data']
+        
+        # Sort columns based on custom criteria
+        sorted_columns = sorted(renamed_data.columns, key=custom_sort)
+        renamed_data = renamed_data[sorted_columns]
+        
         st.write("Preview of Renamed Data:")
         st.dataframe(renamed_data.head())
 
@@ -113,18 +78,9 @@ def run():
         st.write("P/S : After uploading the file, You can review the Unique FlowNo above and check if got any unique FlowNo that is not in the original Script;(it might be due to the user mispressed the key), or drop questions that you don't want to include(analyze) in the DataFrame. Additionally, you can remove any FlowNo entries that don't exist in the script due to mistaken extra keypress entries made by the call center during the campaign that is not alligned with the original script.")
            
         for i, col in enumerate(question_columns, start=1):
-            if st.checkbox(f"Drop entire Question {i} ({col})", key=f"drop_{col}"):
-                st.session_state['drop_cols'].append(col)
-           
-            # Handling keypress decoding
-            if col not in st.session_state['drop_cols']:
-                st.subheader(f"Q{i}: {col}")
-                unique_values = renamed_data[col].unique()
-                for val in unique_values:
-                   if st.checkbox(f"Map '{val}' in {col}", key=f"map_{col}_{val}"):
-                        new_val = st.text_input("New value for " + val, key=f"new_{col}_{val}")
-                        st.session_state['keypress_mappings'].setdefault(col, {})[val] = new_val
-        
+            st.subheader(f"Q{i}: {col}")
+            
+            unique_values = [val for val in renamed_data[col].unique() if pd.notna(val)]
             # Handle cases where values do not follow the 'key=value' format
             def sort_key(x):
                 parts = x.split('=')
@@ -145,7 +101,7 @@ def run():
 
             for idx, val in enumerate(sorted_unique_values):
                 if pd.notna(val):
-                    autofill_value = simple_mappings.get(val, "")
+                    autofill_value = flow_no_mappings.get(val, "")
                     unique_key = f"{col}_{val}_{idx}"
                     
                     # Checkbox to decide whether to exclude this specific FlowNo value
@@ -161,12 +117,6 @@ def run():
                 keypress_mappings[col] = all_mappings
 
         if st.button("Decode Keypresses"):
-            apply_keypress_mappings(renamed_data)
-
-            # Drop specified columns
-            renamed_data.drop(columns=st.session_state['drop_cols'], inplace=True, errors='ignore')
-
-            st.dataframe(renamed_data)  # Show the DataFrame after operations
             
             # Use an expander for optional debugging output
             with st.expander("Show keypress mappings"):
@@ -261,15 +211,8 @@ def run():
                 mime='text/csv'
             )
 
-        else:
-            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
-
-def apply_keypress_mappings(data):
-    # Example function to apply mappings, modify as necessary
-    for col, mappings in st.session_state['keypress_mappings'].items():
-        if col in data.columns:
-            data[col] = data[col].map(mappings).fillna(data[col])
-            st.write(f"Applied mappings for {col}")
+    else:
+        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
 if __name__ == "__main__":
     run()
