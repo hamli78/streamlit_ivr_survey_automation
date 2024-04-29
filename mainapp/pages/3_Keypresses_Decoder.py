@@ -87,7 +87,9 @@ def run():
                 if unique_key not in st.session_state['keypress_mappings']:
                     st.session_state['keypress_mappings'][unique_key] = flow_no_mappings.get(val, val)
 
-                readable_val = st.text_input(f"Rename '{val}' to:", value=st.session_state['keypress_mappings'][unique_key], key=unique_key)
+                # Ensure that the full key=value is used for renaming
+                display_key = f"{col}={val}"
+                readable_val = st.text_input(f"Rename '{display_key}' to:", value=st.session_state['keypress_mappings'][unique_key], key=unique_key)
                 st.session_state['keypress_mappings'][unique_key] = readable_val  # Save back to session state
 
         if st.button("Decode Keypresses"):
