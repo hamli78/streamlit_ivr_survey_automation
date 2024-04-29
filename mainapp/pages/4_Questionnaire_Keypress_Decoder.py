@@ -35,25 +35,32 @@ set_dark_mode_css()  # Call the function to apply the dark mode CSS
 # Initialize a variable to hold the mappings
 flow_no_mappings = {}
 
-uploaded_file = st.session_state['uploaded_file']
-file_content = uploaded_file['content']
+# Function to recall the uploaded file from the session state
+def recall_uploaded_file_from_session_state():
+    if 'uploaded_file' in st.session_state:
+        uploaded_file = st.session_state['uploaded_file']
+        file_content = uploaded_file['content']
+        try:
+            if uploaded_file['type'] == "application/json":
+                # Handle JSON file
+                flow_no_mappings = json.loads(file_content)
+            else:
+                # Handle plain text file
+                flow_no_mappings = parse_text_to_json(file_content)
+            st.success("Questions and answers parsed successfully.✨")
+            return flow_no_mappings
+        except Exception as e:
+            st.error(f"Error processing file: {e}")
+    else:
+        st.error("No file uploaded. Please upload a file first.")
 
-# Check if a file is uploaded
-if uploaded_file is not None:
-    file_content = uploaded_file.getvalue().decode("utf-8")
-    try:
-        if uploaded_file.type == "application/json":
-            # Handle JSON file
-            flow_no_mappings = json.loads(file_content)
-        else:
-            # Handle plain text file
-            flow_no_mappings = parse_text_to_json(file_content)
-        st.success("Questions and answers parsed successfully.✨")
-    except Exception as e:
-        st.error(f"Error processing file: {e}")
-else:
-        # Optional: Inform the user to upload a file
-        st.info("Please upload a file to parse questions and their answers.")
+# Recall the uploaded file from the session state
+flow_no_mappings = recall_uploaded_file_from_session_state()
+
+# Now you can continue processing the file
+if flow_no_mappings is not None:
+    # Process the file further
+    pass
 
 # Flatten the JSON structure to simplify the mapping access
 simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
