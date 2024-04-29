@@ -36,60 +36,60 @@ def set_dark_mode_css():
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
 
 def run1():
-    st.title('Questionnaire Definer🎡')
-    st.markdown("### Upload Script Files (.txt, .json format)")
+st.title('Questionnaire Definer🎡')
+st.markdown("### Upload Script Files (.txt, .json format)")
 
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
-    file_parsed = False  # Track if a file has been parsed
+uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
+file_parsed = False  # Track if a file has been parsed
 
-    if uploaded_file is not None:
-        file_contents = uploaded_file.getvalue().decode("utf-8")
+if uploaded_file is not None:
+    file_contents = uploaded_file.getvalue().decode("utf-8")
 
-        if uploaded_file.type == "application/json":
-            try:
-                json_data = json.loads(file_contents)
-                parsed_data = parse_questions_and_answers(json_data)
-                st.session_state['qa_dict'] = parsed_data
-                st.success("JSON questions and answers parsed successfully.✨")
-                file_parsed = True
-            except json.JSONDecodeError:
-                st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
-        else:
-            parsed_data = parse_text_to_json(file_contents)
+    if uploaded_file.type == "application/json":
+        try:
+            json_data = json.loads(file_contents)
+            parsed_data = parse_questions_and_answers(json_data)
             st.session_state['qa_dict'] = parsed_data
-            st.success("Text questions and answers parsed successfully.✨")
+            st.success("JSON questions and answers parsed successfully.✨")
             file_parsed = True
-
-    # Section for manual and auto-filled renaming
-    st.markdown("## Rename Columns")
-    if 'cleaned_data' not in st.session_state:
-        st.warning("No cleaned data available for renaming.")
+        except json.JSONDecodeError:
+            st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
     else:
-        cleaned_data = st.session_state['cleaned_data']
-        column_names_to_display = [col for col in cleaned_data.columns]
+        parsed_data = parse_text_to_json(file_contents)
+        st.session_state['qa_dict'] = parsed_data
+        st.success("Text questions and answers parsed successfully.✨")
+        file_parsed = True
 
-        if 'update_names' in st.session_state and st.session_state['update_names']:
-            # Update session state for each new column name only once
-            for i, name in enumerate(st.session_state['new_column_names']):
-                st.session_state[f"new_name_{i}"] = name
-            st.session_state['update_names'] = False  # Reset flag
+# Section for manual and auto-filled renaming
+st.markdown("## Rename Columns")
+if 'cleaned_data' not in st.session_state:
+    st.warning("No cleaned data available for renaming.")
+else:
+    cleaned_data = st.session_state['cleaned_data']
+    column_names_to_display = [col for col in cleaned_data.columns]
 
-        new_column_names = []
-        for idx, default_name in enumerate(column_names_to_display):
-            default_value = st.session_state.get(f"new_name_{idx}", default_name)
-            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
-            new_column_names.append(new_name)
+    if 'update_names' in st.session_state and st.session_state['update_names']:
+        # Update session state for each new column name only once
+        for i, name in enumerate(st.session_state['new_column_names']):
+            st.session_state[f"new_name_{i}"] = name
+        st.session_state['update_names'] = False  # Reset flag
 
-        if st.button("Apply New Column Names"):
-            updated_df = rename_columns(cleaned_data, new_column_names)
-            st.session_state['renamed_data'] = updated_df
-            st.session_state['new_column_names'] = new_column_names
-            st.session_state['update_names'] = True  # Set flag to update names in the session state
-            st.experimental_rerun()
+    new_column_names = []
+    for idx, default_name in enumerate(column_names_to_display):
+        default_value = st.session_state.get(f"new_name_{idx}", default_name)
+        new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
+        new_column_names.append(new_name)
 
-        st.write("DataFrame with Renamed Columns:")
-        if 'renamed_data' in st.session_state:
-            st.dataframe(st.session_state['renamed_data'].head())
+    if st.button("Apply New Column Names"):
+        updated_df = rename_columns(cleaned_data, new_column_names)
+        st.session_state['renamed_data'] = updated_df
+        st.session_state['new_column_names'] = new_column_names
+        st.session_state['update_names'] = True  # Set flag to update names in the session state
+        st.experimental_rerun()
+
+    st.write("DataFrame with Renamed Columns:")
+    if 'renamed_data' in st.session_state:
+        st.dataframe(st.session_state['renamed_data'].head())
 
 if __name__ == "__main__":
-run1()
+    run1()
