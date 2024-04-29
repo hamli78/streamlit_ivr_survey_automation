@@ -225,7 +225,6 @@ def run12():
 
 
 ########################################################################
-
 def run1():
     st.title('Questionnaire Definer🎡')
     st.markdown("### Upload Script Files (.txt, .json format)")
@@ -235,7 +234,6 @@ def run1():
 
     if uploaded_file is not None:
         file_contents = uploaded_file.getvalue().decode("utf-8")
-
         if uploaded_file.type == "application/json":
             try:
                 json_data = json.loads(file_contents)
@@ -246,38 +244,21 @@ def run1():
             except json.JSONDecodeError:
                 st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
         else:  # For text format
-            parsed_data = parse_text_to_json(file_contents)
+            parsed_data = parse_qa_text_to_json(file_contents)
             st.session_state['qa_dict'] = parsed_data
             st.success("Text questions and answers parsed successfully.✨")
             file_parsed = True
 
     # Section for manual and auto-filled renaming
     st.markdown("## Rename Columns")
-    if 'cleaned_data' not in st.session_state:
-        st.warning("No cleaned data available for renaming.")
-    else:
+    if 'cleaned_data' in st.session_state:
         cleaned_data = st.session_state['cleaned_data']
         column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
-
-        # Manual input for renaming columns, with special handling for the first and last columns
         new_column_names = []
         unique_session_key = datetime.now().isoformat()  # Unique key for each session to avoid duplicate widget IDs
 
         for idx, default_name in enumerate(column_names_to_display):
-            if idx == 0:
-                # First column reserved for "phonenum"
-                default_value = "phonenum"
-            elif idx == len(column_names_to_display) - 1:
-                # Last column reserved for "Set"
-                default_value = "Set"
-            elif file_parsed:
-                # Adjust question numbering to start from column 1, not 0
-                question_key = f"Q{idx}"  # Adjusted to match questions starting from 1
-                default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
-            else:
-                default_value = default_name
-
-            # Use unique_session_key to create a unique key for each widget
+            default_value = "phonenum" if idx == 0 else "Set" if idx == len(column_names_to_display) - 1 else st.session_state['qa_dict'].get(f"Q{idx}", {}).get('question', default_name)
             input_key = f"new_name_{idx}_{unique_session_key}"
             new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=input_key)
             new_column_names.append(new_name)
@@ -287,46 +268,10 @@ def run1():
             st.session_state['renamed_data'] = updated_df
             st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
-            
-    run12()    
-         # Section for manual and auto-filled renaming
-    st.markdown("## Rename Columns")
-    if 'cleaned_data' not in st.session_state:
-        st.warning("No cleaned data available for renaming.")
+            run12()  # Call the next processing step if renaming is applied
+
     else:
-        cleaned_data = st.session_state['cleaned_data']
-        column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
-
-        # Manual input for renaming columns, with special handling for the first and last columns
-        new_column_names = []
-        for idx, default_name in enumerate(column_names_to_display):
-            if idx == 0:
-                # First column reserved for "phonenum"
-                default_value = "phonenum"
-            elif idx == len(column_names_to_display) - 1:
-                # Last column reserved for "Set"
-                default_value = "Set"
-            elif file_parsed:
-                # Adjust question numbering to start from column 1, not 0
-                question_key = f"Q{idx}"  # Adjusted to match questions starting from 1
-                default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
-            else:
-                default_value = default_name
-
-            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
-            new_column_names.append(new_name)
-
-        if st.button("Apply New Column Names"):
-            updated_df = rename_columns(cleaned_data, new_column_names)
-            st.session_state['renamed_data'] = updated_df
-            st.write("DataFrame with Renamed Columns:")
-            st.dataframe(updated_df.head())
-            
-        # Check if 'renamed_data' is available before calling run12()
-        if 'renamed_data' in st.session_state:
-            run12()
-        else:
-            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+        st.warning("No cleaned data available for renaming.")
 
 if __name__ == "__main__":
     run1()
