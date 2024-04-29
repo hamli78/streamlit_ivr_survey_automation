@@ -28,8 +28,9 @@ def parse_text_to_json(text_content):
     - dict: A dictionary representing the parsed content with questions as keys and their details (question text and answers) as values.
     """
     data = {}
-    question_re = re.compile(r'^(\d+)\.\s+(.*)')
-    answer_re = re.compile(r'^\s+-\s+(.*)')
+    question_re = re.compile(r'^(\d+)\.\s*(.*)')  # Adjusted to allow optional spaces after the period
+    answer_re = re.compile(r'^\s*-\s*(.*)')  # Adjusted to allow optional spaces around the dash
+
     current_question = ""
 
     for line in text_content.splitlines():
