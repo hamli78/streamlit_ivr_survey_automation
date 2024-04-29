@@ -85,11 +85,11 @@ def run1():
                 default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
             else:
                 default_value = default_name
-
+            
             # Retrieve stored value from session state or use default
-            stored_value = st.session_state.get(f"new_name_{idx}", default_value)
+            stored_value = st.session_state.get(f"new_name_{idx}", default_value)   
 
-            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=stored_value, key=f"new_name_{idx}")
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
             new_column_names.append(new_name)
 
         if st.button("Apply New Column Names"):
