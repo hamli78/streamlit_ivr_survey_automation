@@ -14,8 +14,8 @@ def parse_text_to_json(text_content):
     current_question = None
 
     # Regular expressions for identifying parts of the text
-    question_re = re.compile(r'^(\d+)\.\s+(.*)')
-    answer_re = re.compile(r'^\s+-\s+(.*)')
+    question_re = re.compile(r'^(\d+)\.\s*(.*)')  # Adjusted to allow optional spaces after the period
+    answer_re = re.compile(r'^\s*-\s*(.*)')  # Adjusted to allow optional spaces around the dash
 
     for line in text_content.splitlines():
         question_match = question_re.match(line)
