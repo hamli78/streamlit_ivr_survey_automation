@@ -72,8 +72,8 @@ for q_key, q_data in flow_no_mappings.items():
         simple_mappings[answer_key] = answer_value
         
 def run():
-
-    if 'renamed_data' in st.session_state:
+    if 'cleaned_data' in st.session_state or 'renamed_data' in st.session_state :
+        cleaned_data = st.session_state['cleaned_data']
         renamed_data = st.session_state['renamed_data']
         
         # Sort columns based on custom criteria
