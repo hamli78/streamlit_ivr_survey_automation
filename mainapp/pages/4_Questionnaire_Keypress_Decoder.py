@@ -32,6 +32,32 @@ def set_dark_mode_css():
 
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
 
+# Initialize a variable to hold the mappings
+flow_no_mappings = {}
+
+# Check if a file is uploaded
+if uploaded_file is not None:
+    file_content = uploaded_file.getvalue().decode("utf-8")
+    try:
+        if uploaded_file.type == "application/json":
+            # Handle JSON file
+            flow_no_mappings = json.loads(file_content)
+        else:
+            # Handle plain text file
+            flow_no_mappings = parse_text_to_json(file_content)
+        st.success("Questions and answers parsed successfully.✨")
+    except Exception as e:
+        st.error(f"Error processing file: {e}")
+else:
+        # Optional: Inform the user to upload a file
+        st.info("Please upload a file to parse questions and their answers.")
+
+# Flatten the JSON structure to simplify the mapping access
+simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+for q_key, q_data in flow_no_mappings.items():
+    for answer_key, answer_value in q_data["answers"].items():
+        simple_mappings[answer_key] = answer_value
+        
 def run11():
     st.title('IVR Data Processor 🚀')
 
