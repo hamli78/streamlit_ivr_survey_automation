@@ -61,18 +61,14 @@ def run():
             st.success("Text questions and answers parsed successfully.✨")
             file_parsed = True
 
-    # Flatten the JSON structure to simplify the mapping access if necessary
-    simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question.get("answers", {}).items()}
-
     # Section for manual and auto-filled renaming
-    st.markdown("## Rename Columns")
     if 'cleaned_data' not in st.session_state:
         st.warning("No cleaned data available for renaming.")
+        return  # Ensure we don't proceed further if there's no data to work with
     else:
         cleaned_data = st.session_state['cleaned_data']
         column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
 
-        # Manual input for renaming columns, with special handling for the first and last columns
         new_column_names = []
         for idx, default_name in enumerate(column_names_to_display):
             if idx == 0:
@@ -94,6 +90,12 @@ def run():
             st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
 
+    # Ensure renamed_data is available before continuing
+    if 'renamed_data' in st.session_state:
+        renamed_data = st.session_state['renamed_data']
+    else:
+        st.error("No renamed data available. Please rename data first.")
+        return  # Exit function if no renamed data available
     # Additional code for decoding keypresses and other operations...
     if 'renamed_data' in st.session_state:
         decoded_data = st.session_state['renamed_data']
