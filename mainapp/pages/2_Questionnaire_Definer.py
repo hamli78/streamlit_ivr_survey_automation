@@ -35,34 +35,36 @@ def set_dark_mode_css():
 
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
 
-st.title('Questionnaire Definer🎡')
-st.markdown("### Upload Script Files (.txt, .json format)")
-
-uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
-file_parsed = False  # Track if a file has been parsed
-
-if uploaded_file is not None:
-    file_contents = uploaded_file.getvalue().decode("utf-8")
-
-    if uploaded_file.type == "application/json":
-        try:
-            json_data = json.loads(file_contents)
-            parsed_data = parse_questions_and_answers(json_data)
-            st.session_state['qa_dict'] = parsed_data
-            st.success("JSON questions and answers parsed successfully.✨")
-            file_parsed = True
-        except json.JSONDecodeError:
-            st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
-    else:  # For text format
-        parsed_data = parse_text_to_json(file_contents)
-        st.session_state['qa_dict'] = parsed_data
-        st.success("Text questions and answers parsed successfully.✨")
-        file_parsed = True
-    if file_parsed:
-        # Navigate to the next page or activate further functionality
-        st.button("Proceed to Next Step", on_click=lambda: st.experimental_rerun())
-        
+    
 def run1():
+
+    st.title('Questionnaire Definer🎡')
+    st.markdown("### Upload Script Files (.txt, .json format)")
+
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
+    file_parsed = False  # Track if a file has been parsed
+
+    if uploaded_file is not None:
+        file_contents = uploaded_file.getvalue().decode("utf-8")
+
+        if uploaded_file.type == "application/json":
+            try:
+                json_data = json.loads(file_contents)
+                parsed_data = parse_questions_and_answers(json_data)
+                st.session_state['qa_dict'] = parsed_data
+                st.success("JSON questions and answers parsed successfully.✨")
+                file_parsed = True
+            except json.JSONDecodeError:
+                st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
+        else:  # For text format
+            parsed_data = parse_text_to_json(file_contents)
+            st.session_state['qa_dict'] = parsed_data
+            st.success("Text questions and answers parsed successfully.✨")
+            file_parsed = True
+        if file_parsed:
+            # Navigate to the next page or activate further functionality
+            st.button("Proceed to Next Step", on_click=lambda: st.experimental_rerun())
+            
      # Section for manual and auto-filled renaming
     st.markdown("## Rename Columns")
     if 'cleaned_data' not in st.session_state:
