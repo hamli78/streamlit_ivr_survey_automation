@@ -75,17 +75,26 @@ for q_key, q_data in flow_no_mappings.items():
         simple_mappings[answer_key] = answer_value
         
 def run():
-    if 'cleaned_data' in st.session_state:
-        st.warning("No cleaned data available for renaming.")
-    else:
-        cleaned_data = st.session_state['cleaned_data']
-    if 'renamed_data' in st.session_state:
-        renamed_data = st.session_state['renamed_data']
-        
-        # Sort columns based on custom criteria
-        sorted_columns = sorted(renamed_data.columns, key=custom_sort)
-        renamed_data = renamed_data[sorted_columns]
-        
+        if 'cleaned_data' in st.session_state:
+            cleaned_data = st.session_state['cleaned_data']
+        else:
+            st.warning("No cleaned data available for renaming.")
+            return
+        if 'keypress_mappings' not in st.session_state:
+            st.session_state['keypress_mappings'] = {}
+            
+        if 'drop_cols' not in st.session_state:
+            st.session_state['drop_cols'] = []
+
+        if 'renamed_data' in st.session_state:
+            renamed_data = st.session_state['renamed_data']
+            
+            # Sort columns based on custom criteria
+            sorted_columns = sorted(renamed_data.columns, key=custom_sort)
+            renamed_data = renamed_data[sorted_columns]
+
+        renamed_data = cleaned_data 
+
         st.write("Preview of Renamed Data:")
         st.dataframe(renamed_data.head())
 
@@ -104,9 +113,18 @@ def run():
         st.write("P/S : After uploading the file, You can review the Unique FlowNo above and check if got any unique FlowNo that is not in the original Script;(it might be due to the user mispressed the key), or drop questions that you don't want to include(analyze) in the DataFrame. Additionally, you can remove any FlowNo entries that don't exist in the script due to mistaken extra keypress entries made by the call center during the campaign that is not alligned with the original script.")
            
         for i, col in enumerate(question_columns, start=1):
-            st.subheader(f"Q{i}: {col}")
-            
-            unique_values = [val for val in renamed_data[col].unique() if pd.notna(val)]
+            if st.checkbox(f"Drop entire Question {i} ({col})", key=f"drop_{col}"):
+                st.session_state['drop_cols'].append(col)
+           
+            # Handling keypress decoding
+            if col not in st.session_state['drop_cols']:
+                st.subheader(f"Q{i}: {col}")
+                unique_values = renamed_data[col].unique()
+                for val in unique_values:
+                   if st.checkbox(f"Map '{val}' in {col}", key=f"map_{col}_{val}"):
+                        new_val = st.text_input("New value for " + val, key=f"new_{col}_{val}")
+                        st.session_state['keypress_mappings'].setdefault(col, {})[val] = new_val
+        
             # Handle cases where values do not follow the 'key=value' format
             def sort_key(x):
                 parts = x.split('=')
@@ -143,6 +161,18 @@ def run():
                 keypress_mappings[col] = all_mappings
 
         if st.button("Decode Keypresses"):
+            
+def apply_keypress_mappings(data):
+    # Example function to apply mappings, modify as necessary
+    for col, mappings in st.session_state['keypress_mappings'].items():
+        if col in data.columns:
+            data[col] = data[col].map(mappings).fillna(data[col])
+            st.write(f"Applied mappings for {col}")
+
+    # Drop specified columns
+    data.drop(columns=st.session_state['drop_cols'], inplace=True, errors='ignore')
+
+    st.dataframe(data)  # Show the DataFrame after operations
             
             # Use an expander for optional debugging output
             with st.expander("Show keypress mappings"):
@@ -237,8 +267,8 @@ def run():
                 mime='text/csv'
             )
 
-    else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+        else:
+            st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
 if __name__ == "__main__":
     run()
