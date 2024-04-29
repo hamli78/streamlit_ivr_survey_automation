@@ -39,11 +39,12 @@ def run1():
     st.title('Questionnaire Definer🎡')
     st.markdown("### Upload Script Files (.txt, .json format)")
 
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'])
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt','json'],key="uploaded_file")
     file_parsed = False  # Track if a file has been parsed
 
     if uploaded_file is not None:
         file_contents = uploaded_file.getvalue().decode("utf-8")
+        
 
         if uploaded_file.type == "application/json":
             try:
