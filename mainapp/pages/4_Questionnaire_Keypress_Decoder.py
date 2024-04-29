@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import re
+import json
 
 # Function to parse the text file
 def parse_text_to_json(text_content):
@@ -15,21 +16,32 @@ def parse_text_to_json(text_content):
 
         if question_match:
             current_question += 1
-            data[f'FlowNo_{current_question}='] = float('nan')
+            q_text = question_match.group(2)
+            data[f'Q{current_question}'] = {'question': q_text, 'answers': {}}
         elif answer_match:
-            answer_text = answer_match.group(1)
-            answer_index = len([k for k in data.keys() if f'FlowNo_{current_question}=' in k])
-            data[f'FlowNo_{current_question}={answer_index+1}'] = answer_text
+            a_text = answer_match.group(1)
+            a_index = len(data[f'Q{current_question}']['answers']) + 1
+            data[f'Q{current_question}']['answers'][a_index] = a_text
 
-    return data
+    # Convert the parsed data to a flat dictionary for mapping
+    flat_data = {}
+    for q_key, q_info in data.items():
+        q_num = int(q_key[1:])
+        for a_key, a_val in q_info['answers'].items():
+            flat_data[f'FlowNo_{q_num}={a_key}'] = a_val
+
+    return flat_data
 
 # Function to map the answers to the data
-def map_answers_to_data(df, answers_dict):
+def map_flowno_to_text(df, qna_mapping):
     for col in df.columns:
-        if 'FlowNo' in col:
-            key = col.split('=')[0] + '='
-            mapping = {int(k.split('=')[1]): v for k, v in answers_dict.items() if k.startswith(key)}
-            df[col] = df[col].map(mapping, na_action='ignore')
+        if col.startswith('FlowNo_'):
+            # Strip the 'FlowNo_' prefix and parse the index
+            index = int(col.split('_')[1].split('=')[0])
+            q_text = qna_mapping.get(f'Q{index}', {}).get('question', f'Q{index}')
+            a_mapping = {int(k.split('=')[1]): v for k, v in qna_mapping.get(f'Q{index}', {}).get('answers', {}).items()}
+            df = df.rename(columns={col: q_text})
+            df[q_text] = df[q_text].map(a_mapping)
     return df
 
 # Streamlit App
@@ -44,11 +56,11 @@ def main():
     if uploaded_text and uploaded_csv:
         # Read and process the text file
         text_content = uploaded_text.getvalue().decode('utf-8')
-        answers_dict = parse_text_to_json(text_content)
+        qna_mapping = parse_text_to_json(text_content)
 
         # Read the CSV file and process it
         df_cleaned_data = pd.read_csv(uploaded_csv)
-        df_mapped_data = map_answers_to_data(df_cleaned_data, answers_dict)
+        df_mapped_data = map_flowno_to_text(df_cleaned_data, qna_mapping)
 
         # Display the dataframe
         st.write('Mapped Data', df_mapped_data)
