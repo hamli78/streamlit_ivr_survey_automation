@@ -37,13 +37,11 @@ def run():
 
     st.markdown("### Upload Script Files (.txt, .json format)")
     uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
-
     file_parsed = False  # Track if a file has been parsed
     flow_no_mappings = {}
 
     if uploaded_file is not None:
         file_contents = uploaded_file.getvalue().decode("utf-8")
-
         if uploaded_file.type == "application/json":
             try:
                 json_data = json.loads(file_contents)
@@ -60,6 +58,9 @@ def run():
             flow_no_mappings = parse_qa_text_to_json(file_contents)
             st.success("Text questions and answers parsed successfully.✨")
             file_parsed = True
+
+    # Flatten the JSON structure to simplify the mapping access
+    simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question.get("answers", {}).items()}
 
     # Section for manual and auto-filled renaming
     if 'cleaned_data' not in st.session_state:
@@ -104,7 +105,6 @@ def run():
                 decoded_data.insert(income_range_index + 1, 'IncomeGroup', income_group)
 
             # Display updated DataFrame and other information
-
             st.write("Preview of Decoded Data:")
             st.dataframe(decoded_data)
             
@@ -131,9 +131,6 @@ def run():
                 if col != 'phonenum':
                     st.write(decoded_data[col].value_counts(normalize=True))
                     st.write("\n")
-            
-            st.write("Preview of Decoded Data:")
-            st.dataframe(decoded_data)
 
             # Initialize session state for output_filename if it doesn't already exist
             if 'output_filename' not in st.session_state:
