@@ -112,7 +112,7 @@ def run12():
             all_mappings = {}
             excluded_flow_nos[col] = []
             flow_no_mappings = {}
-            
+
             # Flatten the JSON structure to simplify the mapping access
             simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
             for q_key, q_data in flow_no_mappings.items():
@@ -332,3 +332,5 @@ def run1():
         else:
             st.error("No renamed data found. Please go back to the previous step and rename your data first.")
 
+if __name__ == "__main__":
+    run1()
