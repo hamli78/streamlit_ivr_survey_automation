@@ -1,8 +1,8 @@
 import streamlit as st
 from PIL import Image
 import json
-import re
 from modules.questionnaire_utils_page2 import parse_questions_and_answers, parse_text_to_json, rename_columns
+import pandas as pd
 
 # Configure the default settings of the page.
 icon = Image.open('./images/invoke_logo.png')
@@ -14,12 +14,11 @@ st.set_page_config(
 )
 
 def set_dark_mode_css():
-    # Apply dark mode CSS to the Streamlit app.
     dark_mode_css = """
     <style>
         html, body, [class*="View"] {
-            color: #ffffff;  /* Text Color */
-            background-color: #111111;  /* Background Color */
+            color: #ffffff;
+            background-color: #111111;
         }
         .stTextInput > div > div > input, .stFileUploader > div > div > button {
             color: #ffffff;
@@ -28,16 +27,13 @@ def set_dark_mode_css():
         .stCheckbox > label, .stButton > button {
             color: #ffffff;
         }
-        /* Add other widget-specific styles here */
     </style>
     """
     st.markdown(dark_mode_css, unsafe_allow_html=True)
 
-set_dark_mode_css()  # Call the function to apply the dark mode CSS
+set_dark_mode_css()
 
-    
 def run1():
-
     st.title('Questionnaire Definer🎡')
     st.markdown("### Upload Script Files (.txt, .json format)")
 
@@ -56,49 +52,30 @@ def run1():
                 file_parsed = True
             except json.JSONDecodeError:
                 st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
-        else:  # For text format
+        else:
             parsed_data = parse_text_to_json(file_contents)
             st.session_state['qa_dict'] = parsed_data
             st.success("Text questions and answers parsed successfully.✨")
             file_parsed = True
-        if file_parsed:
-            # Navigate to the next page or activate further functionality
-            st.button("Proceed to Next Step", on_click=lambda: st.experimental_rerun())
-            
-     # Section for manual and auto-filled renaming
+
+    # Section for manual and auto-filled renaming
     st.markdown("## Rename Columns")
     if 'cleaned_data' not in st.session_state:
+        st.session_state['cleaned_data'] = pd.DataFrame()  # Placeholder for data
         st.warning("No cleaned data available for renaming.")
     else:
         cleaned_data = st.session_state['cleaned_data']
-        column_names_to_display = [col for col in cleaned_data.columns]  # Placeholder for actual column names
+        if 'renamed_columns' not in st.session_state:
+            st.session_state['renamed_columns'] = cleaned_data.columns.tolist()
 
-        # Manual input for renaming columns, with special handling for the first and last columns
-        new_column_names = []
-        for idx, default_name in enumerate(column_names_to_display):
-            if idx == 0:
-                # First column reserved for "phonenum"
-                default_value = "phonenum"
-            elif idx == len(column_names_to_display) - 1:
-                # Last column reserved for "Set"
-                default_value = "Set"
-            elif file_parsed:
-                # Adjust question numbering to start from column 1, not 0
-                question_key = f"Q{idx}"  # Adjusted to match questions starting from 1
-                default_value = st.session_state['qa_dict'].get(question_key, {}).get('question', default_name)
-            else:
-                default_value = default_name
-
-            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_value, key=f"new_name_{idx}")
-            new_column_names.append(new_name)
+        for idx, default_name in enumerate(st.session_state['renamed_columns']):
+            new_name = st.text_input(f"Column {idx+1}: {default_name}", value=default_name, key=f"new_name_{idx}")
+            st.session_state['renamed_columns'][idx] = new_name
 
         if st.button("Apply New Column Names"):
-            updated_df = rename_columns(cleaned_data, new_column_names)
+            updated_df = rename_columns(cleaned_data, st.session_state['renamed_columns'])
             st.session_state['renamed_data'] = updated_df
-            st.write("DataFrame with Renamed Columns:")
             st.dataframe(updated_df.head())
 
 if __name__ == "__main__":
     run1()
-
-
