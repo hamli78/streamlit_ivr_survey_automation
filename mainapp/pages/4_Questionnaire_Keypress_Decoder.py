@@ -33,37 +33,37 @@ def set_dark_mode_css():
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
         
 def run12():
-    # Function to recall the uploaded file from the session state
-    def recall_uploaded_file_from_session_state():
-        if 'uploaded_file' in st.session_state:
-            uploaded_file = st.session_state['uploaded_file']
-            file_content = uploaded_file['content']
-            try:
-                if uploaded_file['type'] == "application/json":
-                    # Handle JSON file
-                    flow_no_mappings = json.loads(file_content)
-                else:
-                    # Handle plain text file
-                    flow_no_mappings = parse_text_to_json(file_content)
-                st.success("Questions and answers parsed successfully.✨")
-                return flow_no_mappings
-            except Exception as e:
-                st.error(f"Error processing file: {e}")
-                return None
-        else:
-            st.error("No file uploaded. Please upload a file first.")
-            return None
+    # # Function to recall the uploaded file from the session state
+    # def recall_uploaded_file_from_session_state():
+    #     if 'uploaded_file' in st.session_state:
+    #         uploaded_file = st.session_state['uploaded_file']
+    #         file_content = uploaded_file['content']
+    #         try:
+    #             if uploaded_file['type'] == "application/json":
+    #                 # Handle JSON file
+    #                 flow_no_mappings = json.loads(file_content)
+    #             else:
+    #                 # Handle plain text file
+    #                 flow_no_mappings = parse_text_to_json(file_content)
+    #             st.success("Questions and answers parsed successfully.✨")
+    #             return flow_no_mappings
+    #         except Exception as e:
+    #             st.error(f"Error processing file: {e}")
+    #             return None
+    #     else:
+    #         st.error("No file uploaded. Please upload a file first.")
+    #         return None
 
-    # Recall the uploaded file from the session state
-    flow_no_mappings = recall_uploaded_file_from_session_state()
+    # # Recall the uploaded file from the session state
+    # flow_no_mappings = recall_uploaded_file_from_session_state()
 
-    # Now you can continue processing the file
-    if flow_no_mappings is not None:
-        # Flatten the JSON structure to simplify the mapping access
-        simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-        for q_key, q_data in flow_no_mappings.items():
-            for answer_key, answer_value in q_data["answers"].items():
-                simple_mappings[answer_key] = answer_value
+    # # Now you can continue processing the file
+    # if flow_no_mappings is not None:
+    #     # Flatten the JSON structure to simplify the mapping access
+    #     simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+    #     for q_key, q_data in flow_no_mappings.items():
+    #         for answer_key, answer_value in q_data["answers"].items():
+    #             simple_mappings[answer_key] = answer_value
 
 
     if 'renamed_data' in st.session_state:
@@ -111,6 +111,13 @@ def run12():
                 
             all_mappings = {}
             excluded_flow_nos[col] = []
+            flow_no_mappings = {}
+            
+            # Flatten the JSON structure to simplify the mapping access
+            simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+            for q_key, q_data in flow_no_mappings.items():
+                for answer_key, answer_value in q_data["answers"].items():
+                    simple_mappings[answer_key] = answer_value
 
             for idx, val in enumerate(sorted_unique_values):
                 if pd.notna(val):
