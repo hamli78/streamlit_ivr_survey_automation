@@ -32,77 +32,6 @@ def set_dark_mode_css():
 
 set_dark_mode_css()  # Call the function to apply the dark mode CSS
 
-# Initialize a variable to hold the mappings
-flow_no_mappings = {}
-
-# Flatten the JSON structure to simplify the mapping access
-simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-for q_key, q_data in flow_no_mappings.items():
-    for answer_key, answer_value in q_data["answers"].items():
-        simple_mappings[answer_key] = answer_value
-
-def run11():
-    st.title('IVR Data Processor 🚀')
-
-    st.markdown("### Upload Script Files (.txt, .json format)")
-    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
-    file_parsed = False  # Track if a file has been parsed
-    flow_no_mappings = {}
-
-    if uploaded_file is not None:
-        file_contents = uploaded_file.getvalue().decode("utf-8")
-        if uploaded_file.type == "application/json":
-            try:
-                json_data = json.loads(file_contents)
-                parsed_data = parse_questions_and_answers(json_data)
-                st.session_state['qa_dict'] = parsed_data
-                flow_no_mappings = json_data
-                st.success("JSON questions and answers parsed successfully.✨")
-                file_parsed = True
-            except json.JSONDecodeError:
-                st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
-        else:  # For text format
-            parsed_data = parse_qa_text_to_json(file_contents)
-            st.session_state['qa_dict'] = parsed_data
-            flow_no_mappings = parse_qa_text_to_json(file_contents)
-            st.success("Text questions and answers parsed successfully.✨")
-            file_parsed = True
-
-        # Initialize a variable to hold the mappings
-        flow_no_mappings = {}
-
-        # Check if a file is uploaded
-        if uploaded_file is not None:
-            file_content = uploaded_file.getvalue().decode("utf-8")
-            try:
-                if uploaded_file.type == "application/json":
-                    # Handle JSON file
-                    flow_no_mappings = json.loads(file_content)
-                else:
-                    # Handle plain text file
-                    flow_no_mappings = parse_text_to_json(file_content)
-                st.success("Questions and answers parsed successfully.✨")
-            except Exception as e:
-                st.error(f"Error processing file: {e}")
-        else:
-                # Optional: Inform the user to upload a file
-                st.info("Please upload a file to parse questions and their answers.")
-
-            # Flatten the JSON structure to simplify the mapping access
-        simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
-        for q_key, q_data in flow_no_mappings.items():
-            for answer_key, answer_value in q_data["answers"].items():
-                simple_mappings[answer_key] = answer_value
-                
-        
-    else:
-        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
-
-    run12()
-
-if __name__ == "__main__":
-    run11()
-
 def run12():
 
     if 'renamed_data' in st.session_state:
@@ -262,3 +191,77 @@ def run12():
                 file_name=st.session_state['output_filename'],
                 mime='text/csv'
             )
+
+# Initialize a variable to hold the mappings
+flow_no_mappings = {}
+
+# Flatten the JSON structure to simplify the mapping access
+simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+for q_key, q_data in flow_no_mappings.items():
+    for answer_key, answer_value in q_data["answers"].items():
+        simple_mappings[answer_key] = answer_value
+
+########################################################################
+
+def run11():
+    st.title('IVR Data Processor 🚀')
+
+    st.markdown("### Upload Script Files (.txt, .json format)")
+    uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
+    file_parsed = False  # Track if a file has been parsed
+    flow_no_mappings = {}
+
+    if uploaded_file is not None:
+        file_contents = uploaded_file.getvalue().decode("utf-8")
+        if uploaded_file.type == "application/json":
+            try:
+                json_data = json.loads(file_contents)
+                parsed_data = parse_questions_and_answers(json_data)
+                st.session_state['qa_dict'] = parsed_data
+                flow_no_mappings = json_data
+                st.success("JSON questions and answers parsed successfully.✨")
+                file_parsed = True
+            except json.JSONDecodeError:
+                st.error("Error decoding JSON. Please ensure the file is a valid JSON format.")
+        else:  # For text format
+            parsed_data = parse_qa_text_to_json(file_contents)
+            st.session_state['qa_dict'] = parsed_data
+            flow_no_mappings = parse_qa_text_to_json(file_contents)
+            st.success("Text questions and answers parsed successfully.✨")
+            file_parsed = True
+
+        # Initialize a variable to hold the mappings
+        flow_no_mappings = {}
+
+        # Check if a file is uploaded
+        if uploaded_file is not None:
+            file_content = uploaded_file.getvalue().decode("utf-8")
+            try:
+                if uploaded_file.type == "application/json":
+                    # Handle JSON file
+                    flow_no_mappings = json.loads(file_content)
+                else:
+                    # Handle plain text file
+                    flow_no_mappings = parse_text_to_json(file_content)
+                st.success("Questions and answers parsed successfully.✨")
+            except Exception as e:
+                st.error(f"Error processing file: {e}")
+        else:
+                # Optional: Inform the user to upload a file
+                st.info("Please upload a file to parse questions and their answers.")
+
+            # Flatten the JSON structure to simplify the mapping access
+        simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
+        for q_key, q_data in flow_no_mappings.items():
+            for answer_key, answer_value in q_data["answers"].items():
+                simple_mappings[answer_key] = answer_value
+                
+        
+    else:
+        st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+
+    run12()
+
+if __name__ == "__main__":
+    run11()
+
