@@ -161,18 +161,12 @@ def run():
                 keypress_mappings[col] = all_mappings
 
         if st.button("Decode Keypresses"):
-            
-def apply_keypress_mappings(data):
-    # Example function to apply mappings, modify as necessary
-    for col, mappings in st.session_state['keypress_mappings'].items():
-        if col in data.columns:
-            data[col] = data[col].map(mappings).fillna(data[col])
-            st.write(f"Applied mappings for {col}")
+            apply_keypress_mappings(renamed_data)
 
-    # Drop specified columns
-    data.drop(columns=st.session_state['drop_cols'], inplace=True, errors='ignore')
+            # Drop specified columns
+            renamed_data.drop(columns=st.session_state['drop_cols'], inplace=True, errors='ignore')
 
-    st.dataframe(data)  # Show the DataFrame after operations
+            st.dataframe(renamed_data)  # Show the DataFrame after operations
             
             # Use an expander for optional debugging output
             with st.expander("Show keypress mappings"):
@@ -269,6 +263,13 @@ def apply_keypress_mappings(data):
 
         else:
             st.error("No renamed data found. Please go back to the previous step and rename your data first.")
+
+def apply_keypress_mappings(data):
+    # Example function to apply mappings, modify as necessary
+    for col, mappings in st.session_state['keypress_mappings'].items():
+        if col in data.columns:
+            data[col] = data[col].map(mappings).fillna(data[col])
+            st.write(f"Applied mappings for {col}")
 
 if __name__ == "__main__":
     run()
