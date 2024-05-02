@@ -62,3 +62,5 @@ def rename_columns(df, new_column_names):
     """
     mapping = {old: new for old, new in zip(df.columns, new_column_names) if new}
     return df.rename(columns=mapping, inplace=False)
+
+#

@@ -5,23 +5,36 @@ import json
 
 # Function to parse the text file
 def parse_text_to_json(text_content):
-    data = {}
-    question_re = re.compile(r'^(\d+)\.\s*(.*)')
-    answer_re = re.compile(r'^\s*-\s*(.*)')
+    """
+    Converts structured text content into a JSON-like dictionary, parsing questions and their answers.
 
-    current_question = 1
+    Parameters:
+    - text_content (str): Text content containing questions and answers in a structured format.
+
+    Returns:
+    - dict: A dictionary representing the parsed content with questions as keys and their details (question text and answers) as values.
+    """
+    data = {}
+    question_re = re.compile(r'^(\d+)\.\s*(.*)')  # Adjusted to allow optional spaces after the period
+    answer_re = re.compile(r'^\s*-\s*(.*)')  # Adjusted to allow optional spaces around the dash
+
+    current_question = ""
+
     for line in text_content.splitlines():
         question_match = question_re.match(line)
         answer_match = answer_re.match(line)
 
         if question_match:
-            current_question += 1
-            q_text = question_match.group(2)
-            data[f'Q{current_question}'] = {'question': q_text, 'answers': {}}
-        elif answer_match:
-            a_text = answer_match.group(1)
-            a_index = len(data[f'Q{current_question}']['answers']) + 1
-            data[f'Q{current_question}']['answers'][a_index] = a_text
+            q_number, q_text = question_match.groups()
+            current_question = f"Q{q_number}"
+            data[current_question] = {"question": q_text, "answers": {}}
+        elif answer_match and current_question:
+            answer_text = answer_match.groups()[0]
+            flow_no = len(data[current_question]["answers"]) + 1
+            flow_no_key = f"FlowNo_{int(q_number)+1}={flow_no}"
+            data[current_question]["answers"][flow_no_key] = answer_text
+
+    return data
 
     # Convert the parsed data to a flat dictionary for mapping
     flat_data = {}
