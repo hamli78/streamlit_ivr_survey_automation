@@ -58,6 +58,11 @@ if uploaded_file is not None:
         else:
             # Handle plain text file
             flow_no_mappings = parse_text_to_json(file_content)
+
+        # Debugging flow_no_mappings
+        st.write("Debug - Flow No Mappings:", flow_no_mappings)
+
+
         st.success("Questions and answers parsed successfully.✨")
     except Exception as e:
         st.error(f"Error processing file: {e}")
@@ -70,6 +75,9 @@ simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in qu
 for q_key, q_data in flow_no_mappings.items():
     for answer_key, answer_value in q_data["answers"].items():
         simple_mappings[answer_key] = answer_value
+
+# Debugging simple_mappings
+st.write("Debug - Simple Mappings:", simple_mappings)
         
 def run():
 
@@ -177,6 +185,8 @@ def run():
 
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
+            
+            renamed_data = drop_duplicates_from_dataframe(renamed_data)
 
             # Display IVR length and shape
             st.write(f'IVR Length: {len(renamed_data)} rows')
