@@ -193,11 +193,11 @@ def run():
             # Display updated DataFrame and other information
 
             st.write("Preview of Decoded Data:")
-            st.session_state['renamed_data']
+
             st.dataframe(renamed_data)
             
             renamed_data = drop_duplicates_from_dataframe(renamed_data)
-
+            st.session_state['renamed_data']
             # Display IVR length and shape
             st.write(f'IVR Length: {len(renamed_data)} rows')
             st.write(renamed_data.shape)
