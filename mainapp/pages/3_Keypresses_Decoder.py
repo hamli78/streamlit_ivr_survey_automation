@@ -178,32 +178,32 @@ def run():
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
             
-            renamed_data = drop_duplicates_from_dataframe(renamed_data)
+            renamed_data_dropped = drop_duplicates_from_dataframe(renamed_data_dropped)
 
             # Display IVR length and shape
-            st.write(f'IVR Length: {len(renamed_data)} rows')
-            st.write(renamed_data.shape)
+            st.write(f'IVR Length: {len(renamed_data_dropped)} rows')
+            st.write(renamed_data_dropped.shape)
 
             # Current date for reporting
             today = datetime.now()
             st.write(f'IVR count by Set as of {today.strftime("%d-%m-%Y").replace("-0", "-")}')
-            st.write(renamed_data['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
+            st.write(renamed_data_dropped['Set'].value_counts())  # Replace 'Set' with the actual column name for 'Set' data
             
             # Check for null values 
             st.markdown("### Null Values Inspection")
-            renamed_data.dropna(inplace=True)
-            st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
+            renamed_data_dropped.dropna(inplace=True)
+            st.write(f'No. of rows after dropping nulls: {len(renamed_data_dropped)} rows')
             st.write(f'Preview of Total of Null Values per Column:')
-            st.write(renamed_data.isnull().sum())
+            st.write(renamed_data_dropped.isnull().sum())
             
             st.markdown("### Sanity check for values in each column")
-            for col in renamed_data.columns:
+            for col in renamed_data_dropped.columns:
                 if col != 'phonenum':
-                    st.write(renamed_data[col].value_counts(normalize=True))
+                    st.write(renamed_data_dropped[col].value_counts(normalize=True))
                     st.write("\n")
             
             st.write("Preview of Decoded Data:")
-            st.dataframe(renamed_data)
+            st.dataframe(renamed_data_dropped)
 
             # Initialize session state for output_filename if it doesn't already exist
             if 'output_filename' not in st.session_state:
@@ -221,7 +221,7 @@ def run():
             st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
 
             # Assuming renamed_data is defined elsewhere and is the data you want to download
-            data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
+            data_as_csv = renamed_data_dropped.to_csv(index=False).encode('utf-8')
 
             # Use the session state for the filename in the download button
             st.download_button(
