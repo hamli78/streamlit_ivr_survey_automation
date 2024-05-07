@@ -97,8 +97,8 @@ def run():
         sorted_columns = sorted(renamed_data.columns, key=custom_sort)
         renamed_data = renamed_data[sorted_columns]
         
-        st.write("Preview of Renamed Data:")
-        st.dataframe(renamed_data.head())
+        st.write("Preview of Renamed Column Data:")
+        st.dataframe(renamed_data.head(1))
 
         keypress_mappings = {}
         drop_cols = []
