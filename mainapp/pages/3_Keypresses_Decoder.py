@@ -213,6 +213,9 @@ def run():
             st.write(f'Preview of Total of Null Values per Column:')
             st.write(renamed_data.isnull().sum())
             
+            print("DataFrame before sanity check:")
+            print(renamed_data)
+            
             st.markdown("### Sanity check for values in each column")
             for col in renamed_data.columns:
                 if col != 'phonenum':
