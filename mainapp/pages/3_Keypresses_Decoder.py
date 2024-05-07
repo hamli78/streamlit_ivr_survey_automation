@@ -51,30 +51,39 @@ flow_no_mappings = {}
 # Check if a file is uploaded
 if uploaded_file is not None:
     file_content = uploaded_file.getvalue().decode("utf-8")
+    file_type = uploaded_file.type
+    st.write("File type detected:", file_type)  # Debug file type
     try:
-        if uploaded_file.type == "application/json":
-            # Handle JSON file
+        if file_type == "application/json":
             flow_no_mappings = json.loads(file_content)
         else:
-            # Handle plain text file
+            # Assuming all other files should be treated as text
             flow_no_mappings = parse_text_to_json(file_content)
 
         # Debugging flow_no_mappings
         st.write("Debug - Flow No Mappings:", flow_no_mappings)
 
-
-        st.success("Questions and answers parsed successfully.✨")
+        if flow_no_mappings:
+            st.success("Questions and answers parsed successfully.✨")
+        else:
+            st.error("Parsed data is empty. Check file content and parsing logic.")
     except Exception as e:
         st.error(f"Error processing file: {e}")
 else:
         # Optional: Inform the user to upload a file
         st.info("Please upload a file to parse questions and their answers.")
+            
+
 
 # Flatten the JSON structure to simplify the mapping access
 simple_mappings = {k: v for question in flow_no_mappings.values() for k, v in question["answers"].items()}
 for q_key, q_data in flow_no_mappings.items():
     for answer_key, answer_value in q_data["answers"].items():
         simple_mappings[answer_key] = answer_value
+
+test_input = "Did you vote in the Petaling Jaya Parliament?\n- Yes\n- No"
+test_output = parse_text_to_json(test_input)
+st.write("Test output from parse_text_to_json:", test_output)
 
 # Debugging simple_mappings
 st.write("Debug - Simple Mappings:", simple_mappings)
