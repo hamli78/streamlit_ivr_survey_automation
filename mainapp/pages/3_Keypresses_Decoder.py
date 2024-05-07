@@ -193,6 +193,7 @@ def run():
             # Display updated DataFrame and other information
 
             st.write("Preview of Decoded Data:")
+            st.session_state['renamed_data']
             st.dataframe(renamed_data)
             
             renamed_data = drop_duplicates_from_dataframe(renamed_data)
@@ -215,7 +216,7 @@ def run():
             
             print("DataFrame before sanity check:")
             print(renamed_data)
-            
+
             st.markdown("### Sanity check for values in each column")
             for col in renamed_data.columns:
                 if col != 'phonenum':
