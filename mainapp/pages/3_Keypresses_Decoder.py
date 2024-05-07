@@ -216,7 +216,11 @@ def run():
             
             print("DataFrame before sanity check:")
             print(renamed_data)
-
+            
+            st.markdown("### Checking DataFrame content and data types")
+            st.write(renamed_data)  # Display the DataFrame to check its content
+            st.write(renamed_data.dtypes)  # Check data types of the columns
+            
             st.markdown("### Sanity check for values in each column")
             for col in renamed_data.columns:
                 st.write(f"Column: {col}")  # Show which column is being processed
