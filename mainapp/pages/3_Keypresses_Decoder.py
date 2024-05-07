@@ -217,6 +217,7 @@ def run():
             for col in renamed_data.columns:
                 if col != 'phonenum':
                     st.write(renamed_data[col].value_counts(normalize=True))
+                    st.write(renamed_data[col].unique())
                     st.write("\n")
             
             st.write("Preview of Decoded Data:")
