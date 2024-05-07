@@ -98,7 +98,7 @@ def run():
         renamed_data = renamed_data[sorted_columns]
         
         st.write("Preview of Renamed Column Data:")
-        st.dataframe(renamed_data.head(1))
+        st.dataframe(renamed_data.head())
 
         keypress_mappings = {}
         drop_cols = []
@@ -220,9 +220,10 @@ def run():
             st.markdown("### Sanity check for values in each column")
             for col in renamed_data.columns:
                 if col != 'phonenum':
-                    st.write(renamed_data[col].value_counts(normalize=True))
-                    print(renamed_data[col].unique())
-                    st.write("\n")
+                    st.write(f"Column: {col}")  # Show which column is being processed
+                    value_counts = renamed_data[col].value_counts(normalize=True, dropna=False)  # Include NaN values in the output
+                    st.write(value_counts)
+                    st.text(f"Unique values in {col}: {renamed_data[col].unique()}")  # Use st.text to show unique values
             
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
