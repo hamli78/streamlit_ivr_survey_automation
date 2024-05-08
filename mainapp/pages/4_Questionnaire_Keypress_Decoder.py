@@ -1,23 +1,23 @@
 import streamlit as st
+import json
 import pandas as pd
 import re
-import json
 
-# Function to parse the text file
+# Utility functions
+def parse_questions_and_answers(json_data):
+    """Parse questions and answers from JSON data."""
+    questions_and_answers = {}
+    for q_key, q_value in json_data.items():
+        question_text = q_value['question']
+        answers = {k: v for k, v in q_value['answers'].items()}
+        questions_and_answers[q_key] = {'question': question_text, 'answers': answers}
+    return questions_and_answers
+
 def parse_text_to_json(text_content):
-    """
-    Converts structured text content into a JSON-like dictionary, parsing questions and their answers.
-
-    Parameters:
-    - text_content (str): Text content containing questions and answers in a structured format.
-
-    Returns:
-    - dict: A dictionary representing the parsed content with questions as keys and their details (question text and answers) as values.
-    """
+    """Parse structured text content into a JSON-like dictionary."""
     data = {}
-    question_re = re.compile(r'^(\d+)\.\s*(.*)')  # Adjusted to allow optional spaces after the period
-    answer_re = re.compile(r'^\s*-\s*(.*)')  # Adjusted to allow optional spaces around the dash
-
+    question_re = re.compile(r'^(\d+)\.\s*(.*)')  # Question regex
+    answer_re = re.compile(r'^\s*-\s*(.*)')  # Answer regex
     current_question = ""
 
     for line in text_content.splitlines():
@@ -31,53 +31,111 @@ def parse_text_to_json(text_content):
         elif answer_match and current_question:
             answer_text = answer_match.groups()[0]
             flow_no = len(data[current_question]["answers"]) + 1
-            flow_no_key = f"FlowNo_{int(q_number)+1}={flow_no}"
+            flow_no_key = f"FlowNo_{int(q_number) + 1}={flow_no}"
             data[current_question]["answers"][flow_no_key] = answer_text
 
     return data
 
-    # Convert the parsed data to a flat dictionary for mapping
-    flat_data = {}
-    for q_key, q_info in data.items():
-        q_num = int(q_key[1:])
-        for a_key, a_val in q_info['answers'].items():
-            flat_data[f'FlowNo_{q_num}={a_key}'] = a_val
+def custom_sort(col):
+    """Sort column names based on question and flow numbers."""
+    match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
+    if match:
+        question_num = int(match.group(1))
+        flow_no = int(match.group(2)) if match.group(2) else 0
+        return (question_num, flow_no)
+    else:
+        return (float('inf'), 0)
 
-    return flat_data
+# Initialize session states
+if 'cleaned_data' not in st.session_state:
+    st.session_state['cleaned_data'] = pd.DataFrame({
+        'FlowNo_2=1': ['Yes', 'No'],
+        'FlowNo_2=2': ['Maybe', 'Definitely Not'],
+        'FlowNo_3=1': ['Malay', 'Chinese', 'Indian', 'Others'],
+        'FlowNo_3=2': ['Agriculture', 'Entrepreneurship'],
+        'FlowNo_4=1': ['Very Negative', 'Negative', 'Neutral', 'Positive', 'Very Positive'],
+        'FlowNo_5=1': ['IT or Technology', 'Government', 'White Collar Jobs'],
+        'phonenum': ['12345', '67890']
+    })
+if 'qa_dict' not in st.session_state:
+    st.session_state['qa_dict'] = {}
+if 'renamed_data' not in st.session_state:
+    st.session_state['renamed_data'] = pd.DataFrame()
 
-# Function to map the answers to the data
-def map_flowno_to_text(df, qna_mapping):
-    for col in df.columns:
-        if col.startswith('FlowNo_'):
-            # Strip the 'FlowNo_' prefix and parse the index
-            index = int(col.split('_')[1].split('=')[0])
-            q_text = qna_mapping.get(f'Q{index}', {}).get('question', f'Q{index}')
-            a_mapping = {int(k.split('=')[1]): v for k, v in qna_mapping.get(f'Q{index}', {}).get('answers', {}).items()}
-            df = df.rename(columns={col: q_text})
-            df[q_text] = df[q_text].map(a_mapping)
-    return df
+# Title and File Upload Section
+st.title('Questionnaire Definer & Keypress Decoder')
+st.markdown("### Upload Script Files (.txt, .json format)")
 
-# Streamlit App
-def main():
-    st.title('Survey Data Mapping Tool')
+uploaded_file = st.file_uploader("Choose a .txt with formatting or .json with flow-mapping file", type=['txt', 'json'])
+file_parsed = False  # Track if a file has been parsed
 
-    # File uploader for the text file containing the mapping
-    uploaded_text = st.file_uploader('Upload your text file for Q&A mapping', type='txt')
-    # File uploader for the CSV file containing the cleaned data
-    uploaded_csv = st.file_uploader('Upload your CSV file for cleaned data', type='csv')
+# Parse Uploaded Files
+if uploaded_file is not None:
+    file_contents = uploaded_file.getvalue().decode("utf-8")
+    
+    try:
+        # Try loading as JSON first
+        flow_no_mappings = json.loads(file_contents)
+        parsed_data = parse_questions_and_answers(flow_no_mappings)
+        st.session_state['qa_dict'] = parsed_data
+        st.success("JSON questions and answers parsed successfully. ✨")
+        file_parsed = True
+    except json.JSONDecodeError:
+        # If JSON decoding fails, attempt parsing as plain text
+        parsed_data = parse_text_to_json(file_contents)
+        st.session_state['qa_dict'] = parsed_data
+        st.success("Text questions and answers parsed successfully. ✨")
+        file_parsed = True
 
-    if uploaded_text and uploaded_csv:
-        # Read and process the text file
-        text_content = uploaded_text.getvalue().decode('utf-8')
-        qna_mapping = parse_text_to_json(text_content)
+# Prepare Keypress Decode Mappings
+simple_mappings = {k: v for question in st.session_state['qa_dict'].values() for k, v in question["answers"].items()}
+question_mappings = {q_key: q_data["question"] for q_key, q_data in st.session_state['qa_dict'].items()}
+keypress_mappings = {}
+drop_cols = []
+excluded_flow_nos = {}
 
-        # Read the CSV file and process it
-        df_cleaned_data = pd.read_csv(uploaded_csv)
-        df_mapped_data = map_flowno_to_text(df_cleaned_data, qna_mapping)
+# Rename Columns in DataFrame
+if 'cleaned_data' in st.session_state:
+    cleaned_data = st.session_state['cleaned_data']
+    renamed_data = cleaned_data.rename(columns=simple_mappings)
+    
+    # Rename column headers based on question mappings
+    for col in renamed_data.columns:
+        if col in question_mappings:
+            renamed_data.rename(columns={col: question_mappings[col]}, inplace=True)
 
-        # Display the dataframe
-        st.write('Mapped Data', df_mapped_data)
+    sorted_columns = sorted(renamed_data.columns, key=custom_sort)
+    renamed_data = renamed_data[sorted_columns]
+    st.session_state['renamed_data'] = renamed_data
+    st.write("Preview of Renamed Column Data:")
+    st.dataframe(renamed_data.head())
 
-# Run the Streamlit app
-if __name__ == '__main__':
-    main()
+    question_columns = renamed_data.columns[:-1]  # Exclude the last column (e.g., phonenum)
+
+    for i, col in enumerate(question_columns, start=1):
+        st.subheader(f"Q{i}: {col}")
+        unique_values = [val for val in renamed_data[col].unique() if pd.notna(val)]
+        sorted_unique_values = sorted(unique_values, key=lambda x: int(x.split('=')[1]) if '=' in x and x.split('=')[1] else float('inf'))
+        
+        all_mappings = {}
+        excluded_flow_nos[col] = []
+
+        for idx, val in enumerate(sorted_unique_values):
+            if pd.notna(val):
+                autofill_value = simple_mappings.get(val, "")
+                unique_key = f"{col}_{val}_{idx}"
+                if st.checkbox(f"Drop '{val}'", key=f"exclude_{unique_key}"):
+                    excluded_flow_nos[col].append(val)
+                    continue
+
+                readable_val = st.text_input(f"Rename '{val}' to:", value=autofill_value, key=unique_key)
+                if readable_val:
+                    all_mappings[val] = readable_val
+
+        if all_mappings:
+            keypress_mappings[col] = all_mappings
+
+    st.write("Final Mappings:", keypress_mappings)
+
+else:
+    st.warning("No cleaned data available for renaming.")
