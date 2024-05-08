@@ -38,20 +38,22 @@ flow_no_mappings = {}
 
 if uploaded_file is not None:
     file_content = uploaded_file.getvalue().decode("utf-8")
-    file_type = uploaded_file.type
-    st.write("File type detected:", file_type)
+    
     try:
-        if file_type == "application/json":
-            flow_no_mappings = json.loads(file_content)
-        else:
-            flow_no_mappings = parse_text_to_json(file_content)
+        # Try loading as JSON first
+        flow_no_mappings = json.loads(file_content)
+    except json.JSONDecodeError:
+        # If JSON decoding fails, attempt parsing as plain text
+        flow_no_mappings = parse_text_to_json(file_content)
+    
+    # Debug information in a dropdown box
+    with st.expander("Show FlowNo Mappings"):
         st.write("Debug - Flow No Mappings:", flow_no_mappings)
-        if flow_no_mappings:
-            st.success("Questions and answers parsed successfully.✨")
-        else:
-            st.error("Parsed data is empty. Check file content and parsing logic.")
-    except Exception as e:
-        st.error(f"Error processing file: {e}")
+        
+    if flow_no_mappings:
+        st.success("Questions and answers parsed successfully. ✨")
+    else:
+        st.error("Parsed data is empty. Check file content and parsing logic.")
 else:
     st.info("Please upload a file to parse questions and their answers.")
 
