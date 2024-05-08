@@ -148,11 +148,25 @@ def process_data():
             st.write(renamed_data.dtypes)
 
             st.markdown("### Sanity check for values in each column")
-            for col in renamed_data.columns:
+            
+            # Initialize session state to track column checks if not already present
+            if 'column_checks' not in st.session_state:
+                st.session_state['column_checks'] = {}
+                
+            # Function to run sanity checks
+            def run_sanity_check(col, data):
                 st.write(f"Column: {col}")
-                value_counts = renamed_data[col].value_counts(normalize=True, dropna=False)
+                value_counts = data[col].value_counts(normalize=True, dropna=False)
                 st.write(value_counts)
-                st.text(f"Unique values in {col}: {renamed_data[col].unique()}")
+                st.text(f"Unique values in {col}: {data[col].unique()}")
+
+            for col in renamed_data.columns:
+                if col != 'phonenum':
+                    run_sanity_check(col, renamed_data)
+                    # Update session state for the checked column
+                    st.session_state['column_checks'][col] = True
+                else:
+                    st.write(f"Skipping column: {col} (phonenum)")
 
             formatted_date = datetime.now().strftime("%Y%m%d")
             st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
