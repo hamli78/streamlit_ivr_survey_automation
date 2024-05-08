@@ -38,7 +38,8 @@ def parse_text_to_json(text_content):
 
 def custom_sort(col):
     """Sort column names based on question and flow numbers."""
-    match = re.match(r"FlowNo_(\d+)=*(\d*)", col)
+    col_str = str(col)  # Ensure the column name is a string
+    match = re.match(r"FlowNo_(\d+)=*(\d*)", col_str)
     if match:
         question_num = int(match.group(1))
         flow_no = int(match.group(2)) if match.group(2) else 0
