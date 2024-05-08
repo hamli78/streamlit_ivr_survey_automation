@@ -36,7 +36,7 @@ def set_dark_mode_css():
 
 set_dark_mode_css()  # Apply the dark mode CSS
 
-st.title('IVR Data Cleaner 🧮 - Unified Page')
+st.title('Questionnaire Definer and Keypress Decoder 🧮')
 st.markdown("### Upload Script Files (.txt, .json format)")
 
 uploaded_file = st.file_uploader("Choose a txt with formatting or json with flow-mapping file", type=['txt', 'json'])
