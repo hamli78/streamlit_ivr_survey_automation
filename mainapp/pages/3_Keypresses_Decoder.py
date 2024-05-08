@@ -60,11 +60,6 @@ for q_key, q_data in flow_no_mappings.items():
     for answer_key, answer_value in q_data["answers"].items():
         simple_mappings[answer_key] = answer_value
 
-test_input = "Did you vote in the Petaling Jaya Parliament?\n- Yes\n- No"
-test_output = parse_text_to_json(test_input)
-st.write("Test output from parse_text_to_json:", test_output)
-st.write("Debug - Simple Mappings:", simple_mappings)
-
 if 'renamed_data' not in st.session_state:
     st.session_state['renamed_data'] = pd.DataFrame()
 
@@ -152,7 +147,7 @@ def process_data():
             # Initialize session state to track column checks if not already present
             if 'column_checks' not in st.session_state:
                 st.session_state['column_checks'] = {}
-                
+
             # Function to run sanity checks
             def run_sanity_check(col, data):
                 st.write(f"Column: {col}")
