@@ -136,13 +136,10 @@ def process_data():
             st.write(renamed_data['Set'].value_counts())
 
             renamed_data.dropna(inplace=True)
+            st.session_state['renamed_data'] = renamed_data
             st.write(f'No. of rows after dropping nulls: {len(renamed_data)} rows')
             st.write(f'Preview of Total of Null Values per Column:')
             st.write(renamed_data.isnull().sum())
-
-            st.markdown("### Checking DataFrame content and data types")
-            st.write(renamed_data)
-            st.write(renamed_data.dtypes)
 
             st.markdown("### Sanity check for values in each column")
             
@@ -155,7 +152,6 @@ def process_data():
                 st.write(f"Column: {col}")
                 value_counts = data[col].value_counts(normalize=True, dropna=False)
                 st.write(value_counts)
-                st.text(f"Unique values in {col}: {data[col].unique()}")
 
             for col in renamed_data.columns:
                 if col != 'phonenum':
@@ -167,6 +163,7 @@ def process_data():
 
             formatted_date = datetime.now().strftime("%Y%m%d")
             st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
+            
             def update_output_filename():
                 st.session_state['output_filename'] = st.session_state['output_filename_input'] + '.csv' if not st.session_state['output_filename_input'].lower().endswith('.csv') else st.session_state['output_filename_input']
             st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
