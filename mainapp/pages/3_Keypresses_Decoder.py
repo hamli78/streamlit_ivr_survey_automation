@@ -143,24 +143,25 @@ def process_data():
                 st.session_state['column_checks'] = {}
 
             # Function to run sanity checks
-            def run_sanity_check(col, data):
-                st.write(f"Column: {col}")
+            def run_sanity_check(index, col, data):
+                st.write(f"{index}: {col}")
                 value_counts = data[col].value_counts(normalize=True, dropna=False)
                 st.write(value_counts)
+                st.text(f"Unique values in {col}: {data[col].unique()}")
 
-            for col in renamed_data.columns:
+            # Iterate through the columns with sequential numbering
+            for index, col in enumerate(renamed_data.columns, start=1):
                 if col != 'phonenum':
-                    run_sanity_check(col, renamed_data)
+                    run_sanity_check(index, col, renamed_data)
                     # Update session state for the checked column
                     st.session_state['column_checks'][col] = True
-                else:
-                    st.write(f"Skipping column: {col} (phonenum)")
 
             formatted_date = datetime.now().strftime("%Y%m%d")
             st.session_state['output_filename'] = f'IVR_Decoded_Data_v{formatted_date}.csv'
             
             def update_output_filename():
                 st.session_state['output_filename'] = st.session_state['output_filename_input'] + '.csv' if not st.session_state['output_filename_input'].lower().endswith('.csv') else st.session_state['output_filename_input']
+                
             st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
             data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
             st.download_button("Download Decoded Data as CSV", data=data_as_csv, file_name=st.session_state['output_filename'], mime='text/csv')
