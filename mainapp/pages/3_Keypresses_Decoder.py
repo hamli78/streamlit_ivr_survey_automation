@@ -147,10 +147,9 @@ def process_data():
                 st.write(f"{index}: {col}")
                 value_counts = data[col].value_counts(normalize=True, dropna=False)
                 st.write(value_counts)
-                st.text(f"Unique values in {col}: {data[col].unique()}")
 
             # Iterate through the columns with sequential numbering
-            for index, col in enumerate(renamed_data.columns, start=1):
+            for index, col in enumerate(renamed_data.columns, start=0):
                 if col != 'phonenum':
                     run_sanity_check(index, col, renamed_data)
                     # Update session state for the checked column
@@ -161,7 +160,7 @@ def process_data():
             
             def update_output_filename():
                 st.session_state['output_filename'] = st.session_state['output_filename_input'] + '.csv' if not st.session_state['output_filename_input'].lower().endswith('.csv') else st.session_state['output_filename_input']
-                
+
             st.text_input("Edit the filename for download", value=st.session_state['output_filename'], key='output_filename_input', on_change=update_output_filename)
             data_as_csv = renamed_data.to_csv(index=False).encode('utf-8')
             st.download_button("Download Decoded Data as CSV", data=data_as_csv, file_name=st.session_state['output_filename'], mime='text/csv')
