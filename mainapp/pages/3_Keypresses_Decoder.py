@@ -123,6 +123,7 @@ def process_data():
 
             renamed_data = drop_duplicates_from_dataframe(renamed_data)
             st.session_state['renamed_data'] = renamed_data
+            st.markdown("### Decoded Data")
             st.write("Preview of Decoded Data:")
             st.dataframe(renamed_data)
 
