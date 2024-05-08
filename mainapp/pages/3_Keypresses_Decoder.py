@@ -48,7 +48,7 @@ if uploaded_file is not None:
     
     # Debug information in a dropdown box
     with st.expander("Show FlowNo Mappings"):
-        st.write("Debug - Flow No Mappings:", flow_no_mappings)
+        st.write("FlowNo Mappings:", flow_no_mappings)
         
     if flow_no_mappings:
         st.success("Questions and answers parsed successfully. ✨")
@@ -80,11 +80,6 @@ def process_data():
         excluded_flow_nos = {}
 
         question_columns = renamed_data.columns[1:-1]
-        with st.expander("Show Unique Values for FlowNo"):
-            for col in question_columns:
-                if col in renamed_data.columns:
-                    st.write(f"Unique Values in {col} before mapping:", renamed_data[col].unique())
-
         for i, col in enumerate(question_columns, start=1):
             st.subheader(f"Q{i}: {col}")
             unique_values = [val for val in renamed_data[col].unique() if pd.notna(val)]
