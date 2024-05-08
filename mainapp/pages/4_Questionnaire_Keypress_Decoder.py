@@ -31,7 +31,7 @@ def parse_text_to_json(text_content):
         elif answer_match and current_question:
             answer_text = answer_match.groups()[0]
             flow_no = len(data[current_question]["answers"]) + 1
-            flow_no_key = f"FlowNo_{int(q_number) + 1}={flow_no}"
+            flow_no_key = f"FlowNo_{int(q_number)}={flow_no}"
             data[current_question]["answers"][flow_no_key] = answer_text
 
     return data
@@ -49,19 +49,11 @@ def custom_sort(col):
 
 # Initialize session states
 if 'cleaned_data' not in st.session_state:
-    st.session_state['cleaned_data'] = pd.DataFrame({
-        'FlowNo_2=1': ['Yes', 'No'],
-        'FlowNo_2=2': ['Maybe', 'Definitely Not'],
-        'FlowNo_3=1': ['Malay', 'Chinese', 'Indian', 'Others'],
-        'FlowNo_3=2': ['Agriculture', 'Entrepreneurship'],
-        'FlowNo_4=1': ['Very Negative', 'Negative', 'Neutral', 'Positive', 'Very Positive'],
-        'FlowNo_5=1': ['IT or Technology', 'Government', 'White Collar Jobs'],
-        'phonenum': ['12345', '67890']
-    })
+    st.session_state['cleaned_data'] = pd.DataFrame(index=range(0))
 if 'qa_dict' not in st.session_state:
     st.session_state['qa_dict'] = {}
 if 'renamed_data' not in st.session_state:
-    st.session_state['renamed_data'] = pd.DataFrame()
+    st.session_state['renamed_data'] = pd.DataFrame(index=range(0))
 
 # Title and File Upload Section
 st.title('Questionnaire Definer & Keypress Decoder')
@@ -98,6 +90,11 @@ excluded_flow_nos = {}
 # Rename Columns in DataFrame
 if 'cleaned_data' in st.session_state:
     cleaned_data = st.session_state['cleaned_data']
+    
+    # Automatically rename column `Q1` with `0` as `phonenum`
+    if 'Q1' in cleaned_data.columns and '0' in cleaned_data['Q1'].values:
+        cleaned_data.rename(columns={'Q1': 'phonenum'}, inplace=True)
+
     renamed_data = cleaned_data.rename(columns=simple_mappings)
     
     # Rename column headers based on question mappings
